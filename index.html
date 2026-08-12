@@ -13,7 +13,7 @@
         <h1>Call activity by agent, shop, and task</h1>
       </div>
       <button id="refreshButton" class="icon-button" type="button" aria-label="Refresh sheet data" title="Refresh sheet data">
-        <span aria-hidden="true">↻</span>
+        <span aria-hidden="true">&#8635;</span>
       </button>
     </header>
 
@@ -23,18 +23,24 @@
           Agent
           <select id="agentFilter"></select>
         </label>
-        <label>
-          Date range
-          <select id="periodFilter">
-            <option value="day">Day</option>
-            <option value="week" selected>Week</option>
-            <option value="month">Month</option>
-          </select>
-        </label>
-        <label>
-          Starting
-          <input id="dateFilter" type="date" />
-        </label>
+        <fieldset class="period-control">
+          <legend>Date range</legend>
+          <div class="segmented" role="group" aria-label="Date range presets">
+            <button class="period-button" type="button" data-period="day">Days</button>
+            <button class="period-button active" type="button" data-period="week">Week</button>
+            <button class="period-button" type="button" data-period="month">Month</button>
+          </div>
+        </fieldset>
+        <div class="date-range">
+          <label>
+            Start date
+            <input id="startDateFilter" type="date" />
+          </label>
+          <label>
+            End date
+            <input id="endDateFilter" type="date" />
+          </label>
+        </div>
       </section>
 
       <section id="statusPanel" class="status" role="status"></section>
@@ -65,6 +71,14 @@
             <span id="rangeLabel"></span>
           </div>
           <div id="hourChart" class="bar-chart" aria-label="Calls by hour"></div>
+        </div>
+
+        <div class="panel">
+          <div class="section-title">
+            <h2>8-hour call volume</h2>
+            <span id="volumeLabel">8 AM - 4 PM</span>
+          </div>
+          <div id="volumeBreakdown" class="volume-list"></div>
         </div>
 
         <div class="panel">

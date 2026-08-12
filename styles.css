@@ -62,12 +62,14 @@ main {
 
 .controls {
   display: grid;
-  grid-template-columns: repeat(3, minmax(180px, 1fr));
+  grid-template-columns: minmax(180px, 0.8fr) minmax(260px, 1fr) minmax(320px, 1.2fr);
   gap: 14px;
+  align-items: end;
   margin-bottom: 16px;
 }
 
-label {
+label,
+.period-control {
   display: grid;
   gap: 7px;
   color: var(--muted);
@@ -75,9 +77,20 @@ label {
   font-weight: 700;
 }
 
+.period-control {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.period-control legend {
+  padding: 0;
+}
+
 select,
 input,
-.icon-button {
+.icon-button,
+.period-button {
   min-height: 42px;
   border: 1px solid var(--line);
   border-radius: 7px;
@@ -90,6 +103,38 @@ select,
 input {
   width: 100%;
   padding: 0 12px;
+}
+
+.segmented {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: #fff;
+}
+
+.period-button {
+  border: 0;
+  border-right: 1px solid var(--line);
+  border-radius: 0;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.period-button:last-child {
+  border-right: 0;
+}
+
+.period-button.active {
+  background: var(--green);
+  color: #fff;
+}
+
+.date-range {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(140px, 1fr));
+  gap: 12px;
 }
 
 .icon-button {
@@ -200,6 +245,45 @@ input {
 .rank-list {
   display: grid;
   gap: 11px;
+}
+
+.volume-list {
+  display: grid;
+  gap: 10px;
+}
+
+.volume-row {
+  display: grid;
+  grid-template-columns: 120px minmax(80px, 1fr) 42px;
+  gap: 12px;
+  align-items: center;
+  min-height: 31px;
+}
+
+.volume-time {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.volume-meter {
+  height: 10px;
+  overflow: hidden;
+  border-radius: 99px;
+  background: #eef0ec;
+}
+
+.volume-meter span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--blue);
+}
+
+.volume-count {
+  font-weight: 800;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 
 .rank-row {

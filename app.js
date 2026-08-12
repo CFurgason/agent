@@ -6,23 +6,27 @@ const state = {
   rows: [],
   calls: [],
   columns: {},
+  period: "week",
 };
 
 const els = {
   refreshButton: document.querySelector("#refreshButton"),
   agentFilter: document.querySelector("#agentFilter"),
-  periodFilter: document.querySelector("#periodFilter"),
-  dateFilter: document.querySelector("#dateFilter"),
+  periodButtons: [...document.querySelectorAll(".period-button")],
+  startDateFilter: document.querySelector("#startDateFilter"),
+  endDateFilter: document.querySelector("#endDateFilter"),
   statusPanel: document.querySelector("#statusPanel"),
   totalCalls: document.querySelector("#totalCalls"),
   shopCount: document.querySelector("#shopCount"),
   taskCount: document.querySelector("#taskCount"),
   busiestHour: document.querySelector("#busiestHour"),
   rangeLabel: document.querySelector("#rangeLabel"),
+  volumeLabel: document.querySelector("#volumeLabel"),
   shopLabel: document.querySelector("#shopLabel"),
   taskLabel: document.querySelector("#taskLabel"),
   logLabel: document.querySelector("#logLabel"),
   hourChart: document.querySelector("#hourChart"),
+  volumeBreakdown: document.querySelector("#volumeBreakdown"),
   shopChart: document.querySelector("#shopChart"),
   taskChart: document.querySelector("#taskChart"),
   callLog: document.querySelector("#callLog"),
@@ -206,7 +210,15 @@ function buildCalls(rows, columns) {
 }
 
 function formatDateInput(date) {
-  return date.toISOString().slice(0, 10);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function parseDateInput(value) {
+  const parsed = value ? new Date(`${value}T00:00:00`) : null;
+  return parsed && !Number.isNaN(parsed.getTime()) ? parsed : null;
 }
 
 function startOfWeek(date) {
@@ -221,15 +233,47 @@ function startOfMonth(date) {
   return new Date(date.getFullYear(), date.getMonth(), 1);
 }
 
-function getRange() {
-  const selected = els.dateFilter.value ? new Date(`${els.dateFilter.value}T00:00:00`) : new Date();
-  const period = els.periodFilter.value;
+function getPresetRange(period, selectedDate) {
+  const selected = new Date(selectedDate);
   const start = period === "month" ? startOfMonth(selected) : period === "week" ? startOfWeek(selected) : selected;
   start.setHours(0, 0, 0, 0);
   const end = new Date(start);
   if (period === "month") end.setMonth(end.getMonth() + 1);
   else if (period === "week") end.setDate(end.getDate() + 7);
   else end.setDate(end.getDate() + 1);
+  return { start, end };
+}
+
+function setDateInputs(start, end) {
+  els.startDateFilter.value = formatDateInput(start);
+  els.endDateFilter.value = formatDateInput(new Date(end - 1));
+}
+
+function setActivePeriod(period) {
+  state.period = period;
+  els.periodButtons.forEach((button) => {
+    button.classList.toggle("active", button.dataset.period === period);
+  });
+}
+
+function applyPreset(period, selectedDate = parseDateInput(els.startDateFilter.value) || new Date()) {
+  const { start, end } = getPresetRange(period, selectedDate);
+  setActivePeriod(period);
+  setDateInputs(start, end);
+  render();
+}
+
+function getRange() {
+  let start = parseDateInput(els.startDateFilter.value) || new Date();
+  let selectedEnd = parseDateInput(els.endDateFilter.value) || start;
+  if (selectedEnd < start) {
+    [start, selectedEnd] = [selectedEnd, start];
+  }
+  start.setHours(0, 0, 0, 0);
+  const end = new Date(selectedEnd);
+  end.setHours(0, 0, 0, 0);
+  end.setDate(end.getDate() + 1);
+  const period = state.period;
   return { start, end, period };
 }
 
@@ -311,6 +355,27 @@ function renderRankList(element, entries) {
   `).join("");
 }
 
+function renderVolumeBreakdown(calls) {
+  const buckets = Array.from({ length: 8 }, (_, index) => {
+    const startHour = index + 8;
+    const endHour = startHour + 1;
+    const count = calls.filter((call) => call.calledAt.getHours() === startHour).length;
+    return {
+      label: `${formatHour(startHour)} - ${formatHour(endHour)}`,
+      count,
+    };
+  });
+  const max = Math.max(1, ...buckets.map((bucket) => bucket.count));
+
+  els.volumeBreakdown.innerHTML = buckets.map((bucket) => `
+    <div class="volume-row">
+      <div class="volume-time">${bucket.label}</div>
+      <div class="volume-meter" aria-hidden="true"><span style="width: ${(bucket.count / max) * 100}%"></span></div>
+      <div class="volume-count">${bucket.count}</div>
+    </div>
+  `).join("");
+}
+
 function renderLog(calls) {
   els.callLog.innerHTML = calls.slice(0, 200).map((call) => `
     <tr>
@@ -329,17 +394,20 @@ function render() {
   const hourCounts = countBy(calls.map((call) => ({ hour: call.calledAt.getHours() })), "hour");
   const busiest = topEntries(hourCounts, 1)[0];
   const { start, end, period } = getRange();
+  const periodLabel = period === "custom" ? "custom range" : `${period} view`;
 
   els.totalCalls.textContent = calls.length.toLocaleString();
   els.shopCount.textContent = shops.size.toLocaleString();
   els.taskCount.textContent = tasks.size.toLocaleString();
   els.busiestHour.textContent = busiest ? `${formatHour(Number(busiest[0]))}` : "--";
   els.rangeLabel.textContent = `${start.toLocaleDateString()} - ${new Date(end - 1).toLocaleDateString()}`;
-  els.shopLabel.textContent = `${period} view`;
-  els.taskLabel.textContent = `${period} view`;
+  els.volumeLabel.textContent = "8 AM - 4 PM";
+  els.shopLabel.textContent = periodLabel;
+  els.taskLabel.textContent = periodLabel;
   els.logLabel.textContent = `${Math.min(calls.length, 200)} shown`;
 
   renderHourChart(calls);
+  renderVolumeBreakdown(calls);
   renderRankList(els.shopChart, topEntries(shops));
   renderRankList(els.taskChart, topEntries(tasks));
   renderLog(calls);
@@ -367,8 +435,9 @@ async function loadSheet() {
   }
 
   populateAgents();
-  if (!els.dateFilter.value) {
-    els.dateFilter.value = formatDateInput(state.calls[0].calledAt);
+  if (!els.startDateFilter.value || !els.endDateFilter.value) {
+    const { start, end } = getPresetRange(state.period, state.calls[0].calledAt);
+    setDateInputs(start, end);
   }
 
   const mapped = Object.entries(state.columns)
@@ -381,8 +450,17 @@ async function loadSheet() {
 
 els.refreshButton.addEventListener("click", () => loadSheet().catch((error) => setStatus(error.message, true)));
 els.agentFilter.addEventListener("change", render);
-els.periodFilter.addEventListener("change", render);
-els.dateFilter.addEventListener("change", render);
+els.periodButtons.forEach((button) => {
+  button.addEventListener("click", () => applyPreset(button.dataset.period));
+});
+els.startDateFilter.addEventListener("change", () => {
+  setActivePeriod("custom");
+  render();
+});
+els.endDateFilter.addEventListener("change", () => {
+  setActivePeriod("custom");
+  render();
+});
 
 loadSheet().catch((error) => {
   setStatus(`${error.message} If the sheet is private, publish it or share it so viewers can read it.`, true);
