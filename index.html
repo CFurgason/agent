@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Call Agent Dashboard</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Call Agent Dashboard</p>
+        <h1>Call activity by agent, shop, and task</h1>
+      </div>
+      <button id="refreshButton" class="icon-button" type="button" aria-label="Refresh sheet data" title="Refresh sheet data">
+        <span aria-hidden="true">↻</span>
+      </button>
+    </header>
+
+    <main>
+      <section class="controls" aria-label="Dashboard filters">
+        <label>
+          Agent
+          <select id="agentFilter"></select>
+        </label>
+        <label>
+          Date range
+          <select id="periodFilter">
+            <option value="day">Day</option>
+            <option value="week" selected>Week</option>
+            <option value="month">Month</option>
+          </select>
+        </label>
+        <label>
+          Starting
+          <input id="dateFilter" type="date" />
+        </label>
+      </section>
+
+      <section id="statusPanel" class="status" role="status"></section>
+
+      <section class="metric-grid" aria-label="Summary metrics">
+        <article>
+          <span>Total calls</span>
+          <strong id="totalCalls">0</strong>
+        </article>
+        <article>
+          <span>Shops reached</span>
+          <strong id="shopCount">0</strong>
+        </article>
+        <article>
+          <span>Task types</span>
+          <strong id="taskCount">0</strong>
+        </article>
+        <article>
+          <span>Busiest hour</span>
+          <strong id="busiestHour">--</strong>
+        </article>
+      </section>
+
+      <section class="layout">
+        <div class="panel">
+          <div class="section-title">
+            <h2>Calls by time of day</h2>
+            <span id="rangeLabel"></span>
+          </div>
+          <div id="hourChart" class="bar-chart" aria-label="Calls by hour"></div>
+        </div>
+
+        <div class="panel">
+          <div class="section-title">
+            <h2>Calls by shop</h2>
+            <span id="shopLabel"></span>
+          </div>
+          <div id="shopChart" class="rank-list"></div>
+        </div>
+
+        <div class="panel">
+          <div class="section-title">
+            <h2>Calls by task type</h2>
+            <span id="taskLabel"></span>
+          </div>
+          <div id="taskChart" class="rank-list"></div>
+        </div>
+
+        <div class="panel">
+          <div class="section-title">
+            <h2>Call log</h2>
+            <span id="logLabel"></span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Time</th>
+                  <th>Agent</th>
+                  <th>Shop</th>
+                  <th>Task type</th>
+                </tr>
+              </thead>
+              <tbody id="callLog"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
