@@ -31,11 +31,22 @@ const els = {
 const columnAliases = {
   agent: ["agent", "caller", "call agent", "bdc agent", "employee", "rep", "representative"],
   shop: ["shop", "store", "location", "called shop", "shop called", "company", "business"],
-  task: ["task", "task type", "call type", "type", "reason", "category", "activity type"],
+  task: ["task type", "call type", "activity type", "task", "reason", "category", "purpose", "campaign", "type"],
   timestamp: ["timestamp", "datetime", "date time", "created at", "call datetime", "call date time"],
   date: ["date", "call date", "day"],
   time: ["time", "call time", "start time"],
 };
+
+const blockedGroupingHeaders = ["id", "key", "number", "num", "phone", "mobile", "cell", "zip"];
+const knownTaskValues = [
+  "service overdue",
+  "returning new customer",
+  "new customer",
+  "appointment reminder",
+  "declined service",
+  "follow up",
+  "follow-up",
+];
 
 function normalizeHeader(value) {
   return String(value || "")
@@ -86,6 +97,26 @@ function rowsToObjects(rows) {
   );
 }
 
+function textValueScore(rows, header) {
+  const values = rows
+    .map((row) => String(row[header] || "").trim())
+    .filter(Boolean)
+    .slice(0, 100);
+
+  if (!values.length) return 0;
+
+  const textValues = values.filter((value) => /[a-zA-Z]/.test(value));
+  const uniqueValues = new Set(values.map((value) => value.toLowerCase()));
+  return (textValues.length / values.length) * 10 + uniqueValues.size / values.length;
+}
+
+function headerPenalty(header) {
+  const normalized = normalizeHeader(header);
+  return blockedGroupingHeaders.some((blocked) => normalized === blocked || normalized.endsWith(` ${blocked}`))
+    ? -100
+    : 0;
+}
+
 function findColumn(headers, aliases) {
   const normalized = headers.map((header) => [header, normalizeHeader(header)]);
   return normalized.find(([, header]) => aliases.includes(header))?.[0]
@@ -93,11 +124,50 @@ function findColumn(headers, aliases) {
     || null;
 }
 
+function findTextColumn(rows, aliases) {
+  const headers = Object.keys(rows[0] || {});
+  const normalized = headers.map((header) => [header, normalizeHeader(header)]);
+  const candidates = normalized
+    .filter(([, header]) => aliases.includes(header) || aliases.some((alias) => header.includes(alias)))
+    .map(([header, normalizedHeader]) => {
+      const exactScore = aliases.includes(normalizedHeader) ? 20 : 0;
+      const priorityScore = Math.max(0, aliases.length - aliases.findIndex((alias) => normalizedHeader.includes(alias)));
+      return {
+        header,
+        score: exactScore + priorityScore + textValueScore(rows, header) + headerPenalty(header),
+      };
+    })
+    .sort((a, b) => b.score - a.score);
+
+  return candidates[0]?.score > 0 ? candidates[0].header : null;
+}
+
+function findKnownTaskColumn(rows) {
+  const headers = Object.keys(rows[0] || {});
+  const candidates = headers
+    .map((header) => {
+      const values = rows
+        .map((row) => String(row[header] || "").trim().toLowerCase())
+        .filter(Boolean)
+        .slice(0, 200);
+      const knownMatches = values.filter((value) => knownTaskValues.some((task) => value.includes(task))).length;
+      return {
+        header,
+        score: knownMatches * 25 + textValueScore(rows, header) + headerPenalty(header),
+      };
+    })
+    .sort((a, b) => b.score - a.score);
+
+  return candidates[0]?.score > 20 ? candidates[0].header : null;
+}
+
 function inferColumns(rows) {
   const headers = Object.keys(rows[0] || {});
-  return Object.fromEntries(
+  const columns = Object.fromEntries(
     Object.entries(columnAliases).map(([key, aliases]) => [key, findColumn(headers, aliases)]),
   );
+  columns.task = findTextColumn(rows, columnAliases.task) || findKnownTaskColumn(rows) || columns.task;
+  return columns;
 }
 
 function parseCallDate(row, columns) {
