@@ -3,19 +3,19 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Call Agent Dashboard</title>
+    <title>Compare Agents | Call Agent Dashboard</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <header class="topbar">
       <div>
         <p class="eyebrow">Call Agent Dashboard</p>
-        <h1>Call activity by agent, shop, and task</h1>
+        <h1>Compare call agents</h1>
       </div>
       <div class="top-actions">
         <nav class="page-nav" aria-label="Dashboard pages">
-          <a class="active" href="index.html">Dashboard</a>
-          <a href="compare.html">Compare agents</a>
+          <a href="index.html">Dashboard</a>
+          <a class="active" href="compare.html">Compare agents</a>
         </nav>
         <button id="refreshButton" class="icon-button" type="button" aria-label="Refresh sheet data" title="Refresh sheet data">
           <span aria-hidden="true">&#8635;</span>
@@ -24,10 +24,10 @@
     </header>
 
     <main>
-      <section class="controls" aria-label="Dashboard filters">
+      <section class="controls compare-controls" aria-label="Comparison filters">
         <label>
-          Agent
-          <select id="agentFilter"></select>
+          Agents
+          <div id="compareAgentChoices" class="check-list"></div>
         </label>
         <fieldset class="period-control">
           <legend>Date range</legend>
@@ -51,68 +51,45 @@
 
       <section id="statusPanel" class="status" role="status"></section>
 
-      <section class="metric-grid" aria-label="Summary metrics">
-        <article>
-          <span>Total calls</span>
-          <strong id="totalCalls">0</strong>
-        </article>
-        <article>
-          <span>Shops reached</span>
-          <strong id="shopCount">0</strong>
-        </article>
-        <article>
-          <span>Task types</span>
-          <strong id="taskCount">0</strong>
-        </article>
-        <article>
-          <span>Top shop</span>
-          <strong id="topShop">--</strong>
-        </article>
-      </section>
+      <section id="compareSummary" class="metric-grid" aria-label="Comparison summary"></section>
 
-      <section class="layout">
+      <section class="layout compare-layout">
         <div class="panel">
           <div class="section-title">
-            <h2>Calls by shop</h2>
-            <span id="rangeLabel"></span>
-          </div>
-          <div id="shopChart" class="rank-list"></div>
-        </div>
-
-        <div class="panel">
-          <div class="section-title">
-            <h2>Calls by agent</h2>
-            <span id="agentLabel"></span>
-          </div>
-          <div id="agentChart" class="rank-list"></div>
-        </div>
-
-        <div class="panel">
-          <div class="section-title">
-            <h2>Calls by task type</h2>
-            <span id="taskLabel"></span>
-          </div>
-          <div id="taskChart" class="rank-list"></div>
-        </div>
-
-        <div class="panel">
-          <div class="section-title">
-            <h2>Call log</h2>
-            <span id="logLabel"></span>
+            <h2>Agent comparison</h2>
+            <span>selected agents</span>
           </div>
           <div class="table-wrap">
             <table>
               <thead>
                 <tr>
-                  <th>Time</th>
                   <th>Agent</th>
-                  <th>Shop</th>
-                  <th>Task type</th>
+                  <th>Calls</th>
+                  <th>Shops</th>
+                  <th>Task types</th>
+                  <th>Top shop</th>
+                  <th>Top task</th>
                 </tr>
               </thead>
-              <tbody id="callLog"></tbody>
+              <tbody id="compareTable"></tbody>
             </table>
           </div>
+        </div>
+
+        <div class="panel">
+          <div class="section-title">
+            <h2>Shop overlap</h2>
+            <span>top shops</span>
+          </div>
+          <div id="compareShopMatrix" class="matrix-wrap"></div>
+        </div>
+
+        <div class="panel">
+          <div class="section-title">
+            <h2>Task mix</h2>
+            <span>top task types</span>
+          </div>
+          <div id="compareTaskMatrix" class="matrix-wrap"></div>
         </div>
       </section>
     </main>

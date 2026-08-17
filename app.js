@@ -7,6 +7,7 @@ const state = {
   calls: [],
   columns: {},
   period: "week",
+  compareAgents: [],
 };
 
 const els = {
@@ -19,17 +20,21 @@ const els = {
   totalCalls: document.querySelector("#totalCalls"),
   shopCount: document.querySelector("#shopCount"),
   taskCount: document.querySelector("#taskCount"),
-  busiestHour: document.querySelector("#busiestHour"),
+  topShop: document.querySelector("#topShop"),
   rangeLabel: document.querySelector("#rangeLabel"),
-  volumeLabel: document.querySelector("#volumeLabel"),
+  agentLabel: document.querySelector("#agentLabel"),
   shopLabel: document.querySelector("#shopLabel"),
   taskLabel: document.querySelector("#taskLabel"),
   logLabel: document.querySelector("#logLabel"),
-  hourChart: document.querySelector("#hourChart"),
-  volumeBreakdown: document.querySelector("#volumeBreakdown"),
+  agentChart: document.querySelector("#agentChart"),
   shopChart: document.querySelector("#shopChart"),
   taskChart: document.querySelector("#taskChart"),
   callLog: document.querySelector("#callLog"),
+  compareAgentChoices: document.querySelector("#compareAgentChoices"),
+  compareSummary: document.querySelector("#compareSummary"),
+  compareTable: document.querySelector("#compareTable"),
+  compareShopMatrix: document.querySelector("#compareShopMatrix"),
+  compareTaskMatrix: document.querySelector("#compareTaskMatrix"),
 };
 
 const columnAliases = {
@@ -256,7 +261,28 @@ function setActivePeriod(period) {
   });
 }
 
-function applyPreset(period, selectedDate = parseDateInput(els.startDateFilter.value) || new Date()) {
+function callsForSelectedAgent() {
+  const agent = els.agentFilter?.value || "all";
+  return state.calls.filter((call) => agent === "all" || call.agent === agent);
+}
+
+function callsInCurrentRange(calls) {
+  const { start, end } = getRange();
+  return calls.filter((call) => call.calledAt >= start && call.calledAt < end);
+}
+
+function getPresetAnchor(period) {
+  const selectedStart = parseDateInput(els.startDateFilter.value);
+  if (period !== "day") return selectedStart || state.calls[0]?.calledAt || new Date();
+
+  const scopedCalls = callsForSelectedAgent();
+  return callsInCurrentRange(scopedCalls)[0]?.calledAt
+    || scopedCalls[0]?.calledAt
+    || selectedStart
+    || new Date();
+}
+
+function applyPreset(period, selectedDate = getPresetAnchor(period)) {
   const { start, end } = getPresetRange(period, selectedDate);
   setActivePeriod(period);
   setDateInputs(start, end);
@@ -296,9 +322,23 @@ function setStatus(message, isError = false) {
 
 function populateAgents() {
   const agents = [...new Set(state.calls.map((call) => call.agent))].sort((a, b) => a.localeCompare(b));
-  els.agentFilter.innerHTML = `<option value="all">All agents</option>${agents
-    .map((agent) => `<option value="${escapeHtml(agent)}">${escapeHtml(agent)}</option>`)
-    .join("")}`;
+  if (els.agentFilter) {
+    els.agentFilter.innerHTML = `<option value="all">All agents</option>${agents
+      .map((agent) => `<option value="${escapeHtml(agent)}">${escapeHtml(agent)}</option>`)
+      .join("")}`;
+  }
+  if (els.compareAgentChoices) {
+    const selected = state.compareAgents.length ? new Set(state.compareAgents) : new Set(agents.slice(0, 3));
+    els.compareAgentChoices.innerHTML = agents
+      .map((agent) => `
+        <label class="check-row">
+          <input type="checkbox" value="${escapeHtml(agent)}" ${selected.has(agent) ? "checked" : ""} />
+          <span>${escapeHtml(agent)}</span>
+        </label>
+      `)
+      .join("");
+    state.compareAgents = [...els.compareAgentChoices.querySelectorAll("input:checked")].map((input) => input.value);
+  }
 }
 
 function escapeHtml(value) {
@@ -313,7 +353,7 @@ function escapeHtml(value) {
 
 function filteredCalls() {
   const { start, end } = getRange();
-  const agent = els.agentFilter.value;
+  const agent = els.agentFilter?.value || "all";
   return state.calls.filter((call) => {
     const inDate = call.calledAt >= start && call.calledAt < end;
     const inAgent = agent === "all" || call.agent === agent;
@@ -321,26 +361,8 @@ function filteredCalls() {
   });
 }
 
-function renderHourChart(calls) {
-  const counts = Array.from({ length: 12 }, (_, index) => {
-    const hour = index + 7;
-    return {
-      hour,
-      label: hour === 12 ? "12p" : hour > 12 ? `${hour - 12}p` : `${hour}a`,
-      count: calls.filter((call) => call.calledAt.getHours() === hour).length,
-    };
-  });
-  const max = Math.max(1, ...counts.map((item) => item.count));
-  els.hourChart.innerHTML = counts.map((item) => `
-    <div class="hour-bar" title="${item.count} calls at ${item.label}">
-      <div class="hour-value">${item.count}</div>
-      <div class="hour-fill" style="height: ${Math.max(3, (item.count / max) * 170)}px"></div>
-      <div class="hour-label">${item.label}</div>
-    </div>
-  `).join("");
-}
-
 function renderRankList(element, entries) {
+  if (!element) return;
   if (!entries.length) {
     element.innerHTML = `<p class="empty">No calls in this range.</p>`;
     return;
@@ -355,28 +377,8 @@ function renderRankList(element, entries) {
   `).join("");
 }
 
-function renderVolumeBreakdown(calls) {
-  const buckets = Array.from({ length: 8 }, (_, index) => {
-    const startHour = index + 8;
-    const endHour = startHour + 1;
-    const count = calls.filter((call) => call.calledAt.getHours() === startHour).length;
-    return {
-      label: `${formatHour(startHour)} - ${formatHour(endHour)}`,
-      count,
-    };
-  });
-  const max = Math.max(1, ...buckets.map((bucket) => bucket.count));
-
-  els.volumeBreakdown.innerHTML = buckets.map((bucket) => `
-    <div class="volume-row">
-      <div class="volume-time">${bucket.label}</div>
-      <div class="volume-meter" aria-hidden="true"><span style="width: ${(bucket.count / max) * 100}%"></span></div>
-      <div class="volume-count">${bucket.count}</div>
-    </div>
-  `).join("");
-}
-
 function renderLog(calls) {
+  if (!els.callLog) return;
   els.callLog.innerHTML = calls.slice(0, 200).map((call) => `
     <tr>
       <td>${call.calledAt.toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}</td>
@@ -387,36 +389,131 @@ function renderLog(calls) {
   `).join("") || `<tr><td colspan="4" class="empty">No calls in this range.</td></tr>`;
 }
 
-function render() {
+function renderDashboard() {
   const calls = filteredCalls();
   const shops = countBy(calls, "shop");
+  const agents = countBy(calls, "agent");
   const tasks = countBy(calls, "task");
-  const hourCounts = countBy(calls.map((call) => ({ hour: call.calledAt.getHours() })), "hour");
-  const busiest = topEntries(hourCounts, 1)[0];
+  const topShop = topEntries(shops, 1)[0];
   const { start, end, period } = getRange();
   const periodLabel = period === "custom" ? "custom range" : `${period} view`;
 
-  els.totalCalls.textContent = calls.length.toLocaleString();
-  els.shopCount.textContent = shops.size.toLocaleString();
-  els.taskCount.textContent = tasks.size.toLocaleString();
-  els.busiestHour.textContent = busiest ? `${formatHour(Number(busiest[0]))}` : "--";
-  els.rangeLabel.textContent = `${start.toLocaleDateString()} - ${new Date(end - 1).toLocaleDateString()}`;
-  els.volumeLabel.textContent = "8 AM - 4 PM";
-  els.shopLabel.textContent = periodLabel;
-  els.taskLabel.textContent = periodLabel;
-  els.logLabel.textContent = `${Math.min(calls.length, 200)} shown`;
+  if (els.totalCalls) els.totalCalls.textContent = calls.length.toLocaleString();
+  if (els.shopCount) els.shopCount.textContent = shops.size.toLocaleString();
+  if (els.taskCount) els.taskCount.textContent = tasks.size.toLocaleString();
+  if (els.topShop) els.topShop.textContent = topShop ? topShop[0] : "--";
+  if (els.rangeLabel) els.rangeLabel.textContent = `${start.toLocaleDateString()} - ${new Date(end - 1).toLocaleDateString()}`;
+  if (els.agentLabel) els.agentLabel.textContent = periodLabel;
+  if (els.shopLabel) els.shopLabel.textContent = periodLabel;
+  if (els.taskLabel) els.taskLabel.textContent = periodLabel;
+  if (els.logLabel) els.logLabel.textContent = `${Math.min(calls.length, 200)} shown`;
 
-  renderHourChart(calls);
-  renderVolumeBreakdown(calls);
   renderRankList(els.shopChart, topEntries(shops));
+  renderRankList(els.agentChart, topEntries(agents));
   renderRankList(els.taskChart, topEntries(tasks));
   renderLog(calls);
 }
 
-function formatHour(hour) {
-  if (hour === 0) return "12 AM";
-  if (hour === 12) return "12 PM";
-  return hour > 12 ? `${hour - 12} PM` : `${hour} AM`;
+function agentMetrics(calls, agent) {
+  const agentCalls = calls.filter((call) => call.agent === agent);
+  const shops = countBy(agentCalls, "shop");
+  const tasks = countBy(agentCalls, "task");
+  return {
+    agent,
+    calls: agentCalls.length,
+    shops: shops.size,
+    tasks: tasks.size,
+    topShop: topEntries(shops, 1)[0]?.[0] || "--",
+    topTask: topEntries(tasks, 1)[0]?.[0] || "--",
+  };
+}
+
+function renderCompareSummary(metrics) {
+  if (!els.compareSummary) return;
+  const leader = [...metrics].sort((a, b) => b.calls - a.calls || a.agent.localeCompare(b.agent))[0];
+  const totalCalls = metrics.reduce((sum, metric) => sum + metric.calls, 0);
+  const totalShops = new Set(filteredCalls()
+    .filter((call) => state.compareAgents.includes(call.agent))
+    .map((call) => call.shop)).size;
+
+  els.compareSummary.innerHTML = `
+    <article>
+      <span>Agents selected</span>
+      <strong>${metrics.length}</strong>
+    </article>
+    <article>
+      <span>Combined calls</span>
+      <strong>${totalCalls.toLocaleString()}</strong>
+    </article>
+    <article>
+      <span>Shops reached</span>
+      <strong>${totalShops.toLocaleString()}</strong>
+    </article>
+    <article>
+      <span>Call leader</span>
+      <strong>${leader ? escapeHtml(leader.agent) : "--"}</strong>
+    </article>
+  `;
+}
+
+function renderCompareTable(metrics) {
+  if (!els.compareTable) return;
+  els.compareTable.innerHTML = metrics.map((metric) => `
+    <tr>
+      <td>${escapeHtml(metric.agent)}</td>
+      <td>${metric.calls.toLocaleString()}</td>
+      <td>${metric.shops.toLocaleString()}</td>
+      <td>${metric.tasks.toLocaleString()}</td>
+      <td>${escapeHtml(metric.topShop)}</td>
+      <td>${escapeHtml(metric.topTask)}</td>
+    </tr>
+  `).join("") || `<tr><td colspan="6" class="empty">Select two or more agents to compare.</td></tr>`;
+}
+
+function renderMatrix(element, calls, groupKey) {
+  if (!element) return;
+  const groups = topEntries(countBy(calls, groupKey), 8).map(([name]) => name);
+  if (!state.compareAgents.length || !groups.length) {
+    element.innerHTML = `<p class="empty">No comparison data in this range.</p>`;
+    return;
+  }
+
+  const rows = groups.map((group) => {
+    const cells = state.compareAgents.map((agent) => {
+      const count = calls.filter((call) => call.agent === agent && call[groupKey] === group).length;
+      return `<td>${count.toLocaleString()}</td>`;
+    }).join("");
+    return `<tr><th scope="row">${escapeHtml(group)}</th>${cells}</tr>`;
+  }).join("");
+
+  element.innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>${groupKey === "shop" ? "Shop" : "Task type"}</th>
+          ${state.compareAgents.map((agent) => `<th>${escapeHtml(agent)}</th>`).join("")}
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
+}
+
+function renderComparison() {
+  if (!els.compareAgentChoices) return;
+  state.compareAgents = [...els.compareAgentChoices.querySelectorAll("input:checked")].map((input) => input.value);
+  const calls = filteredCalls().filter((call) => state.compareAgents.includes(call.agent));
+  const metrics = state.compareAgents.map((agent) => agentMetrics(calls, agent));
+
+  renderCompareSummary(metrics);
+  renderCompareTable(metrics);
+  renderMatrix(els.compareShopMatrix, calls, "shop");
+  renderMatrix(els.compareTaskMatrix, calls, "task");
+}
+
+function render() {
+  renderDashboard();
+  renderComparison();
 }
 
 async function loadSheet() {
@@ -448,16 +545,17 @@ async function loadSheet() {
   render();
 }
 
-els.refreshButton.addEventListener("click", () => loadSheet().catch((error) => setStatus(error.message, true)));
-els.agentFilter.addEventListener("change", render);
+els.refreshButton?.addEventListener("click", () => loadSheet().catch((error) => setStatus(error.message, true)));
+els.agentFilter?.addEventListener("change", render);
+els.compareAgentChoices?.addEventListener("change", render);
 els.periodButtons.forEach((button) => {
   button.addEventListener("click", () => applyPreset(button.dataset.period));
 });
-els.startDateFilter.addEventListener("change", () => {
+els.startDateFilter?.addEventListener("change", () => {
   setActivePeriod("custom");
   render();
 });
-els.endDateFilter.addEventListener("change", () => {
+els.endDateFilter?.addEventListener("change", () => {
   setActivePeriod("custom");
   render();
 });

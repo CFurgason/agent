@@ -2,6 +2,11 @@
 
 Standalone static dashboard for tracking call-agent activity from a Google Sheet.
 
+Pages:
+
+- `index.html` shows overall call activity, including calls by shop, agent, and task type.
+- `compare.html` compares selected agents over the same date filters.
+
 ## Data source
 
 The app reads this sheet as CSV:
