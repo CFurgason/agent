@@ -495,19 +495,20 @@ function renderTaskHourChart(calls) {
   `).join("");
 
   const groups = hours.map((hour) => {
+    const total = scopedCalls.filter((call) => call.calledAt.getHours() === hour).length;
     const bars = tasks.map((task, index) => {
       const count = scopedCalls.filter((call) => call.calledAt.getHours() === hour && call.task === task).length;
-      const height = count ? Math.max(5, (count / max) * 180) : 0;
+      const height = count ? Math.max(7, (count / max) * 210) : 0;
       return `
         <div class="cluster-bar-wrap" title="${escapeHtml(task)}: ${count} calls from ${formatHour(hour)} to ${formatHour(hour + 1)}">
-          <div class="cluster-value">${count || ""}</div>
           <div class="cluster-bar" style="height: ${height}px; background: ${taskColor(index)}"></div>
         </div>
       `;
     }).join("");
     return `
-      <div class="cluster-group">
-        <div class="cluster-bars" style="grid-template-columns: repeat(${tasks.length}, minmax(10px, 1fr))">${bars}</div>
+      <div class="cluster-group" style="min-width: ${Math.max(100, tasks.length * 24)}px">
+        <div class="cluster-total">${total.toLocaleString()}</div>
+        <div class="cluster-bars" style="grid-template-columns: repeat(${tasks.length}, minmax(14px, 1fr))">${bars}</div>
         <div class="cluster-hour">${formatHour(hour)}</div>
       </div>
     `;
