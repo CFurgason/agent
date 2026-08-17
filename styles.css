@@ -1,15 +1,18 @@
 :root {
   color-scheme: light;
-  --bg: #f6f7f4;
-  --ink: #1f2528;
-  --muted: #667074;
-  --line: #d8ddd6;
+  --bg: #f4f7fb;
+  --ink: #17212b;
+  --muted: #647486;
+  --line: #d8e0e8;
   --panel: #ffffff;
-  --green: #2f6f5e;
-  --blue: #2d5f8b;
-  --rust: #b4563c;
-  --gold: #b2832f;
-  --shadow: 0 12px 30px rgba(31, 37, 40, 0.08);
+  --panel-soft: #f8fafc;
+  --accent: #2563eb;
+  --accent-dark: #1d4ed8;
+  --teal: #0f766e;
+  --orange: #c76a2a;
+  --amber: #b7791f;
+  --purple: #7c3aed;
+  --shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
 }
 
 * {
@@ -28,9 +31,10 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  padding: 28px clamp(18px, 4vw, 48px) 18px;
+  padding: 26px clamp(18px, 4vw, 48px) 20px;
   border-bottom: 1px solid var(--line);
-  background: #fff;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(10px);
 }
 
 .top-actions {
@@ -45,7 +49,7 @@ body {
   padding: 4px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: #f9faf8;
+  background: var(--panel-soft);
 }
 
 .page-nav a {
@@ -56,19 +60,19 @@ body {
   border-radius: 6px;
   color: var(--muted);
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 750;
   text-decoration: none;
   white-space: nowrap;
 }
 
 .page-nav a.active {
-  background: var(--green);
+  background: var(--ink);
   color: #fff;
 }
 
 .eyebrow {
   margin: 0 0 4px;
-  color: var(--green);
+  color: var(--accent);
   font-size: 13px;
   font-weight: 700;
   text-transform: uppercase;
@@ -81,16 +85,18 @@ h2 {
 }
 
 h1 {
-  font-size: clamp(24px, 3vw, 38px);
+  font-size: clamp(24px, 3vw, 36px);
   line-height: 1.08;
+  font-weight: 760;
 }
 
 h2 {
-  font-size: 17px;
+  font-size: 16px;
+  font-weight: 760;
 }
 
 main {
-  padding: 22px clamp(18px, 4vw, 48px) 40px;
+  padding: 24px clamp(18px, 4vw, 48px) 42px;
 }
 
 .controls {
@@ -141,6 +147,15 @@ select,
 input {
   width: 100%;
   padding: 0 12px;
+}
+
+select:focus,
+input:focus,
+button:focus-visible,
+a:focus-visible {
+  outline: 3px solid rgba(37, 99, 235, 0.18);
+  outline-offset: 2px;
+  border-color: var(--accent);
 }
 
 select[multiple] {
@@ -199,7 +214,7 @@ select[multiple] option {
   border-right: 1px solid var(--line);
   border-radius: 0;
   cursor: pointer;
-  font-weight: 700;
+  font-weight: 750;
 }
 
 .period-button:last-child {
@@ -207,7 +222,7 @@ select[multiple] option {
 }
 
 .period-button.active {
-  background: var(--green);
+  background: var(--accent);
   color: #fff;
 }
 
@@ -237,8 +252,8 @@ select[multiple] option {
 .metric-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(140px, 1fr));
-  gap: 14px;
-  margin-bottom: 18px;
+  gap: 16px;
+  margin-bottom: 20px;
 }
 
 .metric-grid article,
@@ -250,7 +265,7 @@ select[multiple] option {
 }
 
 .metric-grid article {
-  padding: 16px;
+  padding: 17px 18px;
 }
 
 .metric-grid span,
@@ -263,7 +278,8 @@ select[multiple] option {
   display: block;
   margin-top: 8px;
   overflow: hidden;
-  font-size: 30px;
+  font-size: 31px;
+  font-weight: 780;
   line-height: 1;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -272,7 +288,7 @@ select[multiple] option {
 .layout {
   display: grid;
   grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.75fr);
-  gap: 18px;
+  gap: 20px;
 }
 
 .compare-layout {
@@ -281,7 +297,7 @@ select[multiple] option {
 
 .panel {
   min-width: 0;
-  padding: 18px;
+  padding: 20px;
 }
 
 .panel:last-child {
@@ -293,7 +309,9 @@ select[multiple] option {
   align-items: baseline;
   justify-content: space-between;
   gap: 12px;
+  padding-bottom: 13px;
   margin-bottom: 16px;
+  border-bottom: 1px solid var(--line);
 }
 
 .rank-list {
@@ -339,14 +357,14 @@ select[multiple] option {
   height: 10px;
   overflow: hidden;
   border-radius: 99px;
-  background: #eef0ec;
+  background: #edf2f7;
 }
 
 .volume-meter span {
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: var(--blue);
+  background: var(--accent);
 }
 
 .volume-count {
@@ -365,7 +383,7 @@ select[multiple] option {
 .rank-name {
   min-width: 0;
   overflow: hidden;
-  font-weight: 700;
+  font-weight: 750;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -380,18 +398,18 @@ select[multiple] option {
   height: 8px;
   overflow: hidden;
   border-radius: 99px;
-  background: #eef0ec;
+  background: #edf2f7;
 }
 
 .rank-meter span {
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: var(--rust);
+  background: var(--teal);
 }
 
 .rank-list .rank-row:nth-child(even) .rank-meter span {
-  background: var(--gold);
+  background: var(--accent);
 }
 
 .table-wrap {
@@ -399,6 +417,7 @@ select[multiple] option {
   overflow: auto;
   border: 1px solid var(--line);
   border-radius: 8px;
+  background: #fff;
 }
 
 .matrix-wrap {
@@ -517,7 +536,7 @@ td {
 th {
   position: sticky;
   top: 0;
-  background: #f9faf8;
+  background: var(--panel-soft);
   color: var(--muted);
   font-size: 12px;
   text-transform: uppercase;
