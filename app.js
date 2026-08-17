@@ -483,10 +483,8 @@ function renderTaskHourChart(calls) {
     return;
   }
 
-  const counts = hours.flatMap((hour) => tasks.map((task) =>
-    scopedCalls.filter((call) => call.calledAt.getHours() === hour && call.task === task).length,
-  ));
-  const max = Math.max(1, ...counts);
+  const totals = hours.map((hour) => scopedCalls.filter((call) => call.calledAt.getHours() === hour).length);
+  const max = Math.max(1, ...totals);
   const legend = tasks.map((task, index) => `
     <div class="cluster-legend-item">
       <span style="background: ${taskColor(index)}"></span>
@@ -496,25 +494,27 @@ function renderTaskHourChart(calls) {
 
   const groups = hours.map((hour) => {
     const total = scopedCalls.filter((call) => call.calledAt.getHours() === hour).length;
-    const bars = tasks.map((task, index) => {
+    const segments = tasks.map((task, index) => {
       const count = scopedCalls.filter((call) => call.calledAt.getHours() === hour && call.task === task).length;
-      const height = count ? Math.max(7, (count / max) * 210) : 0;
+      if (!count) return "";
+      const width = Math.max(2, (count / total) * 100);
       return `
-        <div class="cluster-bar-wrap" title="${escapeHtml(task)}: ${count} calls from ${formatHour(hour)} to ${formatHour(hour + 1)}">
-          <div class="cluster-bar" style="height: ${height}px; background: ${taskColor(index)}"></div>
-        </div>
+        <span class="cluster-segment" style="width: ${width}%; background: ${taskColor(index)}" title="${escapeHtml(task)}: ${count} calls from ${formatHour(hour)} to ${formatHour(hour + 1)}"></span>
       `;
     }).join("");
+    const totalWidth = Math.max(2, (total / max) * 100);
     return `
-      <div class="cluster-group" style="min-width: ${Math.max(100, tasks.length * 24)}px">
+      <div class="cluster-row">
+        <div class="cluster-hour">${formatHour(hour)} - ${formatHour(hour + 1)}</div>
+        <div class="cluster-track">
+          <div class="cluster-stack" style="width: ${totalWidth}%">${segments}</div>
+        </div>
         <div class="cluster-total">${total.toLocaleString()}</div>
-        <div class="cluster-bars" style="grid-template-columns: repeat(${tasks.length}, minmax(14px, 1fr))">${bars}</div>
-        <div class="cluster-hour">${formatHour(hour)}</div>
       </div>
     `;
   }).join("");
 
-  els.taskHourChart.innerHTML = `<div class="cluster-legend">${legend}</div><div class="cluster-plot">${groups}</div>`;
+  els.taskHourChart.innerHTML = `<div class="cluster-legend">${legend}</div><div class="cluster-plot horizontal">${groups}</div>`;
   if (els.taskHourLabel) els.taskHourLabel.textContent = volumeFilterLabel(scopedCalls);
 }
 
