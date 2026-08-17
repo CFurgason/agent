@@ -26,10 +26,12 @@ const els = {
   volumeShopFilter: document.querySelector("#volumeShopFilter"),
   shopLabel: document.querySelector("#shopLabel"),
   taskLabel: document.querySelector("#taskLabel"),
+  taskHourLabel: document.querySelector("#taskHourLabel"),
   logLabel: document.querySelector("#logLabel"),
   volumeBreakdown: document.querySelector("#volumeBreakdown"),
   shopChart: document.querySelector("#shopChart"),
   taskChart: document.querySelector("#taskChart"),
+  taskHourTable: document.querySelector("#taskHourTable"),
   callLog: document.querySelector("#callLog"),
   compareAgentChoices: document.querySelector("#compareAgentChoices"),
   compareSummary: document.querySelector("#compareSummary"),
@@ -457,6 +459,50 @@ function renderVolumeBreakdown(calls) {
   `).join("");
 }
 
+function hourRange(calls) {
+  const hours = calls.map((call) => call.calledAt.getHours());
+  if (!hours.length) return [];
+  const firstHour = Math.min(...hours);
+  const lastHour = Math.max(...hours);
+  return Array.from({ length: lastHour - firstHour + 1 }, (_, index) => firstHour + index);
+}
+
+function renderTaskHourTable(calls) {
+  if (!els.taskHourTable) return;
+  const scopedCalls = getVolumeCalls(calls);
+  const hours = hourRange(scopedCalls);
+  const tasks = topEntries(countBy(scopedCalls, "task"), 8).map(([task]) => task);
+
+  if (!scopedCalls.length || !hours.length || !tasks.length) {
+    els.taskHourTable.innerHTML = `<p class="empty">No calls in this range.</p>`;
+    if (els.taskHourLabel) els.taskHourLabel.textContent = volumeFilterLabel(scopedCalls);
+    return;
+  }
+
+  const rows = hours.map((hour) => {
+    const cells = tasks.map((task) => {
+      const count = scopedCalls.filter((call) => call.calledAt.getHours() === hour && call.task === task).length;
+      return `<td>${count ? count.toLocaleString() : ""}</td>`;
+    }).join("");
+    const total = scopedCalls.filter((call) => call.calledAt.getHours() === hour).length;
+    return `<tr><th scope="row">${formatHour(hour)} - ${formatHour(hour + 1)}</th>${cells}<td>${total.toLocaleString()}</td></tr>`;
+  }).join("");
+
+  els.taskHourTable.innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>Hour</th>
+          ${tasks.map((task) => `<th>${escapeHtml(task)}</th>`).join("")}
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
+  if (els.taskHourLabel) els.taskHourLabel.textContent = volumeFilterLabel(scopedCalls);
+}
+
 function renderDashboard() {
   const calls = filteredCalls();
   const shops = countBy(calls, "shop");
@@ -479,6 +525,7 @@ function renderDashboard() {
   renderRankList(els.shopChart, topEntries(shops));
   renderVolumeBreakdown(calls);
   renderRankList(els.taskChart, topEntries(tasks));
+  renderTaskHourTable(calls);
   renderLog(calls);
 }
 
