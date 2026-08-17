@@ -31,7 +31,7 @@ const els = {
   volumeBreakdown: document.querySelector("#volumeBreakdown"),
   shopChart: document.querySelector("#shopChart"),
   taskChart: document.querySelector("#taskChart"),
-  taskHourTable: document.querySelector("#taskHourTable"),
+  taskHourChart: document.querySelector("#taskHourChart"),
   callLog: document.querySelector("#callLog"),
   compareAgentChoices: document.querySelector("#compareAgentChoices"),
   compareSummary: document.querySelector("#compareSummary"),
@@ -467,39 +467,53 @@ function hourRange(calls) {
   return Array.from({ length: lastHour - firstHour + 1 }, (_, index) => firstHour + index);
 }
 
-function renderTaskHourTable(calls) {
-  if (!els.taskHourTable) return;
+function taskColor(index) {
+  return ["#2d5f8b", "#b4563c", "#2f6f5e", "#b2832f", "#6f4aa1", "#51765a", "#8d5a3f", "#455a86"][index % 8];
+}
+
+function renderTaskHourChart(calls) {
+  if (!els.taskHourChart) return;
   const scopedCalls = getVolumeCalls(calls);
   const hours = hourRange(scopedCalls);
-  const tasks = topEntries(countBy(scopedCalls, "task"), 8).map(([task]) => task);
+  const tasks = topEntries(countBy(scopedCalls, "task"), 6).map(([task]) => task);
 
   if (!scopedCalls.length || !hours.length || !tasks.length) {
-    els.taskHourTable.innerHTML = `<p class="empty">No calls in this range.</p>`;
+    els.taskHourChart.innerHTML = `<p class="empty">No calls in this range.</p>`;
     if (els.taskHourLabel) els.taskHourLabel.textContent = volumeFilterLabel(scopedCalls);
     return;
   }
 
-  const rows = hours.map((hour) => {
-    const cells = tasks.map((task) => {
+  const counts = hours.flatMap((hour) => tasks.map((task) =>
+    scopedCalls.filter((call) => call.calledAt.getHours() === hour && call.task === task).length,
+  ));
+  const max = Math.max(1, ...counts);
+  const legend = tasks.map((task, index) => `
+    <div class="cluster-legend-item">
+      <span style="background: ${taskColor(index)}"></span>
+      <strong title="${escapeHtml(task)}">${escapeHtml(task)}</strong>
+    </div>
+  `).join("");
+
+  const groups = hours.map((hour) => {
+    const bars = tasks.map((task, index) => {
       const count = scopedCalls.filter((call) => call.calledAt.getHours() === hour && call.task === task).length;
-      return `<td>${count ? count.toLocaleString() : ""}</td>`;
+      const height = count ? Math.max(5, (count / max) * 180) : 0;
+      return `
+        <div class="cluster-bar-wrap" title="${escapeHtml(task)}: ${count} calls from ${formatHour(hour)} to ${formatHour(hour + 1)}">
+          <div class="cluster-value">${count || ""}</div>
+          <div class="cluster-bar" style="height: ${height}px; background: ${taskColor(index)}"></div>
+        </div>
+      `;
     }).join("");
-    const total = scopedCalls.filter((call) => call.calledAt.getHours() === hour).length;
-    return `<tr><th scope="row">${formatHour(hour)} - ${formatHour(hour + 1)}</th>${cells}<td>${total.toLocaleString()}</td></tr>`;
+    return `
+      <div class="cluster-group">
+        <div class="cluster-bars" style="grid-template-columns: repeat(${tasks.length}, minmax(10px, 1fr))">${bars}</div>
+        <div class="cluster-hour">${formatHour(hour)}</div>
+      </div>
+    `;
   }).join("");
 
-  els.taskHourTable.innerHTML = `
-    <table>
-      <thead>
-        <tr>
-          <th>Hour</th>
-          ${tasks.map((task) => `<th>${escapeHtml(task)}</th>`).join("")}
-          <th>Total</th>
-        </tr>
-      </thead>
-      <tbody>${rows}</tbody>
-    </table>
-  `;
+  els.taskHourChart.innerHTML = `<div class="cluster-legend">${legend}</div><div class="cluster-plot">${groups}</div>`;
   if (els.taskHourLabel) els.taskHourLabel.textContent = volumeFilterLabel(scopedCalls);
 }
 
@@ -525,7 +539,7 @@ function renderDashboard() {
   renderRankList(els.shopChart, topEntries(shops));
   renderVolumeBreakdown(calls);
   renderRankList(els.taskChart, topEntries(tasks));
-  renderTaskHourTable(calls);
+  renderTaskHourChart(calls);
   renderLog(calls);
 }
 
