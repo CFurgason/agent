@@ -306,6 +306,21 @@ select[multiple] option {
   gap: 10px;
 }
 
+.volume-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.volume-controls label {
+  gap: 5px;
+}
+
+.volume-controls select {
+  min-height: 36px;
+}
+
 .volume-row {
   display: grid;
   grid-template-columns: 120px minmax(80px, 1fr) 42px;

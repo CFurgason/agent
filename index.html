@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Call Agent Dashboard</title>
-    <link rel="stylesheet" href="styles.css?v=3" />
+    <link rel="stylesheet" href="styles.css?v=5" />
   </head>
   <body>
     <header class="topbar">
@@ -84,6 +84,12 @@
             <h2>8-hour call volume</h2>
             <span id="volumeLabel">8 AM - 4 PM</span>
           </div>
+          <div class="volume-controls" aria-label="Hourly call volume filters">
+            <label>
+              Shop
+              <select id="volumeShopFilter"></select>
+            </label>
+          </div>
           <div id="volumeBreakdown" class="volume-list"></div>
         </div>
 
@@ -117,6 +123,6 @@
       </section>
     </main>
 
-    <script src="app.js?v=3"></script>
+    <script src="app.js?v=5"></script>
   </body>
 </html>
