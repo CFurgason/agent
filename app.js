@@ -22,11 +22,11 @@ const els = {
   taskCount: document.querySelector("#taskCount"),
   topShop: document.querySelector("#topShop"),
   rangeLabel: document.querySelector("#rangeLabel"),
-  agentLabel: document.querySelector("#agentLabel"),
+  volumeLabel: document.querySelector("#volumeLabel"),
   shopLabel: document.querySelector("#shopLabel"),
   taskLabel: document.querySelector("#taskLabel"),
   logLabel: document.querySelector("#logLabel"),
-  agentChart: document.querySelector("#agentChart"),
+  volumeBreakdown: document.querySelector("#volumeBreakdown"),
   shopChart: document.querySelector("#shopChart"),
   taskChart: document.querySelector("#taskChart"),
   callLog: document.querySelector("#callLog"),
@@ -389,10 +389,37 @@ function renderLog(calls) {
   `).join("") || `<tr><td colspan="4" class="empty">No calls in this range.</td></tr>`;
 }
 
+function formatHour(hour) {
+  if (hour === 0) return "12 AM";
+  if (hour === 12) return "12 PM";
+  return hour > 12 ? `${hour - 12} PM` : `${hour} AM`;
+}
+
+function renderVolumeBreakdown(calls) {
+  if (!els.volumeBreakdown) return;
+  const buckets = Array.from({ length: 8 }, (_, index) => {
+    const startHour = index + 8;
+    const endHour = startHour + 1;
+    const count = calls.filter((call) => call.calledAt.getHours() === startHour).length;
+    return {
+      label: `${formatHour(startHour)} - ${formatHour(endHour)}`,
+      count,
+    };
+  });
+  const max = Math.max(1, ...buckets.map((bucket) => bucket.count));
+
+  els.volumeBreakdown.innerHTML = buckets.map((bucket) => `
+    <div class="volume-row">
+      <div class="volume-time">${bucket.label}</div>
+      <div class="volume-meter" aria-hidden="true"><span style="width: ${(bucket.count / max) * 100}%"></span></div>
+      <div class="volume-count">${bucket.count}</div>
+    </div>
+  `).join("");
+}
+
 function renderDashboard() {
   const calls = filteredCalls();
   const shops = countBy(calls, "shop");
-  const agents = countBy(calls, "agent");
   const tasks = countBy(calls, "task");
   const topShop = topEntries(shops, 1)[0];
   const { start, end, period } = getRange();
@@ -403,13 +430,13 @@ function renderDashboard() {
   if (els.taskCount) els.taskCount.textContent = tasks.size.toLocaleString();
   if (els.topShop) els.topShop.textContent = topShop ? topShop[0] : "--";
   if (els.rangeLabel) els.rangeLabel.textContent = `${start.toLocaleDateString()} - ${new Date(end - 1).toLocaleDateString()}`;
-  if (els.agentLabel) els.agentLabel.textContent = periodLabel;
+  if (els.volumeLabel) els.volumeLabel.textContent = "8 AM - 4 PM";
   if (els.shopLabel) els.shopLabel.textContent = periodLabel;
   if (els.taskLabel) els.taskLabel.textContent = periodLabel;
   if (els.logLabel) els.logLabel.textContent = `${Math.min(calls.length, 200)} shown`;
 
   renderRankList(els.shopChart, topEntries(shops));
-  renderRankList(els.agentChart, topEntries(agents));
+  renderVolumeBreakdown(calls);
   renderRankList(els.taskChart, topEntries(tasks));
   renderLog(calls);
 }
