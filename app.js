@@ -419,14 +419,26 @@ function volumeFilterLabel(calls) {
   const shop = els.volumeShopFilter?.value || "all";
   const agentLabel = agent === "all" ? "all agents" : agent;
   const shopLabel = shop === "all" ? "all shops" : shop;
-  return `${calls.length.toLocaleString()} calls, ${agentLabel}, ${shopLabel}`;
+  const hours = calls.map((call) => call.calledAt.getHours());
+  const hourLabel = hours.length
+    ? `${formatHour(Math.min(...hours))} - ${formatHour(Math.max(...hours) + 1)}`
+    : "no hours";
+  return `${calls.length.toLocaleString()} calls, ${hourLabel}, ${agentLabel}, ${shopLabel}`;
 }
 
 function renderVolumeBreakdown(calls) {
   if (!els.volumeBreakdown) return;
   const scopedCalls = getVolumeCalls(calls);
-  const buckets = Array.from({ length: 8 }, (_, index) => {
-    const startHour = index + 8;
+  if (!scopedCalls.length) {
+    els.volumeBreakdown.innerHTML = `<p class="empty">No calls in this range.</p>`;
+    return;
+  }
+
+  const hours = scopedCalls.map((call) => call.calledAt.getHours());
+  const firstHour = Math.min(...hours);
+  const lastHour = Math.max(...hours);
+  const buckets = Array.from({ length: lastHour - firstHour + 1 }, (_, index) => {
+    const startHour = firstHour + index;
     const endHour = startHour + 1;
     const count = scopedCalls.filter((call) => call.calledAt.getHours() === startHour).length;
     return {
