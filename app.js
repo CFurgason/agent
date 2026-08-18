@@ -397,6 +397,32 @@ function renderRankList(element, entries) {
   `).join("");
 }
 
+function renderColumnChart(element, entries) {
+  if (!element) return;
+  if (!entries.length) {
+    element.innerHTML = `<p class="empty">No calls in this range.</p>`;
+    return;
+  }
+
+  const max = Math.max(...entries.map(([, count]) => count));
+  element.innerHTML = `
+    <div class="column-chart">
+      ${entries.map(([name, count], index) => {
+        const height = Math.max(6, (count / max) * 100);
+        return `
+          <div class="column-item" title="${escapeHtml(name)}: ${count.toLocaleString()} phone calls">
+            <div class="column-value">${count.toLocaleString()}</div>
+            <div class="column-track" aria-hidden="true">
+              <span style="height: ${height}%; background: ${taskColor(index)}"></span>
+            </div>
+            <div class="column-label">${escapeHtml(name)}</div>
+          </div>
+        `;
+      }).join("")}
+    </div>
+  `;
+}
+
 function formatHour(hour) {
   if (hour === 0) return "12 AM";
   if (hour === 12) return "12 PM";
@@ -620,9 +646,9 @@ function renderDashboard() {
   if (els.shopLabel) els.shopLabel.textContent = periodLabel;
   if (els.taskLabel) els.taskLabel.textContent = periodLabel;
 
-  renderRankList(els.shopChart, topEntries(shops));
+  renderColumnChart(els.shopChart, topEntries(shops, 10));
   renderVolumeBreakdown(calls);
-  renderRankList(els.taskChart, topEntries(tasks));
+  renderColumnChart(els.taskChart, topEntries(tasks, 10));
   renderTaskHourChart(calls);
   renderShopHourChart(calls);
 }

@@ -300,10 +300,6 @@ select[multiple] option {
   padding: 20px;
 }
 
-.panel:last-child {
-  grid-column: 1 / -1;
-}
-
 .section-title {
   display: flex;
   align-items: baseline;
@@ -410,6 +406,67 @@ select[multiple] option {
 
 .rank-list .rank-row:nth-child(even) .rank-meter span {
   background: var(--accent);
+}
+
+.column-chart-wrap {
+  min-width: 0;
+  overflow-x: auto;
+  padding: 4px 2px 2px;
+}
+
+.column-chart {
+  display: grid;
+  grid-auto-columns: minmax(54px, 1fr);
+  grid-auto-flow: column;
+  align-items: end;
+  gap: 12px;
+  min-width: 560px;
+  min-height: 280px;
+}
+
+.column-item {
+  display: grid;
+  grid-template-rows: auto minmax(150px, 1fr) 42px;
+  gap: 8px;
+  min-width: 0;
+  height: 100%;
+}
+
+.column-value {
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 850;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.column-track {
+  display: flex;
+  align-items: end;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 7px;
+  background: #edf2f7;
+}
+
+.column-track span {
+  display: block;
+  width: 100%;
+  min-height: 8px;
+  border-radius: 7px 7px 0 0;
+}
+
+.column-label {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.15;
+  text-align: center;
+  text-overflow: ellipsis;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
 }
 
 .table-wrap {
