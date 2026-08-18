@@ -6,12 +6,12 @@
   --line: #d8e0e8;
   --panel: #ffffff;
   --panel-soft: #f8fafc;
-  --accent: #2563eb;
-  --accent-dark: #1d4ed8;
-  --teal: #0f766e;
-  --orange: #c76a2a;
-  --amber: #b7791f;
-  --purple: #7c3aed;
+  --accent: #1d4ed8;
+  --accent-dark: #1e40af;
+  --teal: #0f5f59;
+  --orange: #a55322;
+  --amber: #946214;
+  --purple: #6d28d9;
   --shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
 }
 
@@ -354,7 +354,7 @@ select[multiple] option {
 }
 
 .volume-meter {
-  height: 10px;
+  height: 14px;
   overflow: hidden;
   border-radius: 99px;
   background: #edf2f7;
@@ -395,7 +395,7 @@ select[multiple] option {
 
 .rank-meter {
   grid-column: 1 / -1;
-  height: 8px;
+  height: 12px;
   overflow: hidden;
   border-radius: 99px;
   background: #edf2f7;
@@ -499,7 +499,7 @@ select[multiple] option {
 }
 
 .cluster-track {
-  height: 18px;
+  height: 24px;
   overflow: hidden;
   border-radius: 99px;
   background: #eef0ec;
@@ -517,6 +517,49 @@ select[multiple] option {
   display: block;
   height: 100%;
   min-width: 2px;
+  cursor: pointer;
+  transition: filter 140ms ease, transform 140ms ease;
+}
+
+.cluster-segment:hover {
+  filter: brightness(0.96) saturate(1.08);
+}
+
+.cluster-tooltip {
+  position: fixed;
+  z-index: 20;
+  display: grid;
+  gap: 4px;
+  max-width: 260px;
+  padding: 11px 13px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.96);
+  color: #fff;
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.25);
+  font-size: 13px;
+  line-height: 1.2;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(4px);
+  transition: opacity 120ms ease, transform 120ms ease;
+}
+
+.cluster-tooltip.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.cluster-tooltip strong {
+  overflow-wrap: anywhere;
+  font-size: 14px;
+  font-weight: 850;
+}
+
+.cluster-tooltip span {
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
 }
 
 table {

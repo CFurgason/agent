@@ -40,6 +40,8 @@ const els = {
   compareTaskMatrix: document.querySelector("#compareTaskMatrix"),
 };
 
+let taskHourTooltip = null;
+
 const columnAliases = {
   agent: ["agent", "caller", "call agent", "bdc agent", "employee", "rep", "representative"],
   shop: ["shop", "store", "location", "called shop", "shop called", "company", "business"],
@@ -468,7 +470,7 @@ function hourRange(calls) {
 }
 
 function taskColor(index) {
-  return ["#2563eb", "#0f766e", "#c76a2a", "#7c3aed", "#0891b2", "#b7791f", "#64748b", "#db2777"][index % 8];
+  return ["#1d4ed8", "#0f5f59", "#a55322", "#6d28d9", "#0e7490", "#946214", "#475569", "#be185d"][index % 8];
 }
 
 function renderTaskHourChart(calls) {
@@ -499,7 +501,12 @@ function renderTaskHourChart(calls) {
       if (!count) return "";
       const width = Math.max(2, (count / total) * 100);
       return `
-        <span class="cluster-segment" style="width: ${width}%; background: ${taskColor(index)}" title="${escapeHtml(task)}: ${count} calls from ${formatHour(hour)} to ${formatHour(hour + 1)}"></span>
+        <span
+          class="cluster-segment"
+          style="width: ${width}%; background: ${taskColor(index)}"
+          data-tooltip-title="${escapeHtml(task)}"
+          data-tooltip-count="${count.toLocaleString()}"
+        ></span>
       `;
     }).join("");
     const totalWidth = Math.max(2, (total / max) * 100);
@@ -516,6 +523,38 @@ function renderTaskHourChart(calls) {
 
   els.taskHourChart.innerHTML = `<div class="cluster-legend">${legend}</div><div class="cluster-plot horizontal">${groups}</div>`;
   if (els.taskHourLabel) els.taskHourLabel.textContent = volumeFilterLabel(scopedCalls);
+}
+
+function showTaskHourTooltip(segment, event) {
+  if (!taskHourTooltip) {
+    taskHourTooltip = document.createElement("div");
+    taskHourTooltip.className = "cluster-tooltip";
+    taskHourTooltip.setAttribute("role", "tooltip");
+    document.body.appendChild(taskHourTooltip);
+  }
+
+  const title = segment.dataset.tooltipTitle || "";
+  const count = segment.dataset.tooltipCount || "0";
+  taskHourTooltip.innerHTML = `
+    <strong>${escapeHtml(title)}</strong>
+    <span>${count} phone calls</span>
+  `;
+  taskHourTooltip.classList.add("visible");
+  moveTaskHourTooltip(event);
+}
+
+function moveTaskHourTooltip(event) {
+  if (!taskHourTooltip) return;
+  const margin = 14;
+  const tooltipRect = taskHourTooltip.getBoundingClientRect();
+  const left = Math.min(window.innerWidth - tooltipRect.width - margin, event.clientX + margin);
+  const top = Math.max(margin, event.clientY - tooltipRect.height - margin);
+  taskHourTooltip.style.left = `${Math.max(margin, left)}px`;
+  taskHourTooltip.style.top = `${top}px`;
+}
+
+function hideTaskHourTooltip() {
+  taskHourTooltip?.classList.remove("visible");
 }
 
 function renderDashboard() {
@@ -689,6 +728,16 @@ els.startDateFilter?.addEventListener("change", () => {
 els.endDateFilter?.addEventListener("change", () => {
   setActivePeriod("custom");
   render();
+});
+els.taskHourChart?.addEventListener("pointerover", (event) => {
+  const segment = event.target.closest(".cluster-segment");
+  if (segment) showTaskHourTooltip(segment, event);
+});
+els.taskHourChart?.addEventListener("pointermove", (event) => {
+  if (event.target.closest(".cluster-segment")) moveTaskHourTooltip(event);
+});
+els.taskHourChart?.addEventListener("pointerout", (event) => {
+  if (event.target.closest(".cluster-segment")) hideTaskHourTooltip();
 });
 
 loadSheet().catch((error) => {
