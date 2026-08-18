@@ -1,9 +1,9 @@
 :root {
   color-scheme: light;
   --bg: #f4f7fb;
-  --ink: #17212b;
-  --muted: #647486;
-  --line: #d8e0e8;
+  --ink: #0f172a;
+  --muted: #334155;
+  --line: #aebccc;
   --panel: #ffffff;
   --panel-soft: #f8fafc;
   --accent: #1d4ed8;
@@ -321,7 +321,7 @@ select[multiple] option {
 }
 
 .panel-hour-analysis .cluster-track {
-  height: 28px;
+  height: 26px;
 }
 
 .section-title {
@@ -359,7 +359,7 @@ select[multiple] option {
 }
 
 .volume-meter {
-  height: 14px;
+  height: 18px;
   overflow: hidden;
   border-radius: 99px;
   background: #edf2f7;
@@ -400,7 +400,7 @@ select[multiple] option {
 
 .rank-meter {
   grid-column: 1 / -1;
-  height: 12px;
+  height: 18px;
   overflow: hidden;
   border-radius: 99px;
   background: #edf2f7;
@@ -455,7 +455,7 @@ select[multiple] option {
   justify-content: center;
   overflow: hidden;
   justify-self: center;
-  width: clamp(30px, 62%, 48px);
+  width: 42px;
   border-radius: 7px;
   background: #edf2f7;
 }
@@ -567,7 +567,7 @@ select[multiple] option {
 }
 
 .cluster-track {
-  height: 24px;
+  height: 26px;
   overflow: hidden;
   border-radius: 99px;
   background: #eef0ec;
