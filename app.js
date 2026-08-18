@@ -280,8 +280,7 @@ function getPresetAnchor(period) {
   if (period !== "day") return selectedStart || state.calls[0]?.calledAt || new Date();
 
   const scopedCalls = callsForSelectedAgent();
-  return callsInCurrentRange(scopedCalls)[0]?.calledAt
-    || scopedCalls[0]?.calledAt
+  return scopedCalls[0]?.calledAt
     || selectedStart
     || new Date();
 }
@@ -770,10 +769,16 @@ els.periodButtons.forEach((button) => {
   button.addEventListener("click", () => applyPreset(button.dataset.period));
 });
 els.startDateFilter?.addEventListener("change", () => {
+  if (state.period === "day") {
+    els.endDateFilter.value = els.startDateFilter.value;
+  }
   setActivePeriod("custom");
   render();
 });
 els.endDateFilter?.addEventListener("change", () => {
+  if (state.period === "day") {
+    els.startDateFilter.value = els.endDateFilter.value;
+  }
   setActivePeriod("custom");
   render();
 });
