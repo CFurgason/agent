@@ -13,6 +13,8 @@ The app reads this sheet as CSV:
 
 `https://docs.google.com/spreadsheets/d/19NMJyjtPNBEqm_STpbVeO69UbymsL7F78h5uX_7xeE8/gviz/tq?tqx=out:csv&gid=0`
 
+If `current-month-calls.tsv` exists next to `index.html` and contains newer rows than the Google Sheet export, the dashboard uses that local current-month file instead.
+
 The dashboard automatically maps common column names for:
 
 - agent
