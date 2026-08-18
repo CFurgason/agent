@@ -27,11 +27,13 @@ const els = {
   shopLabel: document.querySelector("#shopLabel"),
   taskLabel: document.querySelector("#taskLabel"),
   taskHourLabel: document.querySelector("#taskHourLabel"),
+  shopHourLabel: document.querySelector("#shopHourLabel"),
   logLabel: document.querySelector("#logLabel"),
   volumeBreakdown: document.querySelector("#volumeBreakdown"),
   shopChart: document.querySelector("#shopChart"),
   taskChart: document.querySelector("#taskChart"),
   taskHourChart: document.querySelector("#taskHourChart"),
+  shopHourChart: document.querySelector("#shopHourChart"),
   callLog: document.querySelector("#callLog"),
   compareAgentChoices: document.querySelector("#compareAgentChoices"),
   compareSummary: document.querySelector("#compareSummary"),
@@ -525,6 +527,58 @@ function renderTaskHourChart(calls) {
   if (els.taskHourLabel) els.taskHourLabel.textContent = volumeFilterLabel(scopedCalls);
 }
 
+function renderShopHourChart(calls) {
+  if (!els.shopHourChart) return;
+  const scopedCalls = getVolumeCalls(calls);
+  const hours = hourRange(scopedCalls);
+  const shops = topEntries(countBy(scopedCalls, "shop"), 8).map(([shop]) => shop);
+
+  if (!scopedCalls.length || !hours.length || !shops.length) {
+    els.shopHourChart.innerHTML = `<p class="empty">No calls in this range.</p>`;
+    if (els.shopHourLabel) els.shopHourLabel.textContent = volumeFilterLabel(scopedCalls);
+    return;
+  }
+
+  const totals = hours.map((hour) => scopedCalls.filter((call) => call.calledAt.getHours() === hour).length);
+  const max = Math.max(1, ...totals);
+  const legend = shops.map((shop, index) => `
+    <div class="cluster-legend-item">
+      <span style="background: ${taskColor(index)}"></span>
+      <strong title="${escapeHtml(shop)}">${escapeHtml(shop)}</strong>
+    </div>
+  `).join("");
+
+  const groups = hours.map((hour) => {
+    const total = scopedCalls.filter((call) => call.calledAt.getHours() === hour).length;
+    const segments = shops.map((shop, index) => {
+      const count = scopedCalls.filter((call) => call.calledAt.getHours() === hour && call.shop === shop).length;
+      if (!count) return "";
+      const width = Math.max(2, (count / total) * 100);
+      return `
+        <span
+          class="cluster-segment"
+          style="width: ${width}%; background: ${taskColor(index)}"
+          data-tooltip-title="${escapeHtml(shop)}"
+          data-tooltip-count="${count.toLocaleString()}"
+        ></span>
+      `;
+    }).join("");
+    const totalWidth = Math.max(2, (total / max) * 100);
+    return `
+      <div class="cluster-row">
+        <div class="cluster-hour">${formatHour(hour)} - ${formatHour(hour + 1)}</div>
+        <div class="cluster-track">
+          <div class="cluster-stack" style="width: ${totalWidth}%">${segments}</div>
+        </div>
+        <div class="cluster-total">${total.toLocaleString()}</div>
+      </div>
+    `;
+  }).join("");
+
+  els.shopHourChart.innerHTML = `<div class="cluster-legend">${legend}</div><div class="cluster-plot horizontal">${groups}</div>`;
+  if (els.shopHourLabel) els.shopHourLabel.textContent = volumeFilterLabel(scopedCalls);
+}
+
 function showTaskHourTooltip(segment, event) {
   if (!taskHourTooltip) {
     taskHourTooltip = document.createElement("div");
@@ -580,6 +634,7 @@ function renderDashboard() {
   renderVolumeBreakdown(calls);
   renderRankList(els.taskChart, topEntries(tasks));
   renderTaskHourChart(calls);
+  renderShopHourChart(calls);
   renderLog(calls);
 }
 
@@ -729,15 +784,17 @@ els.endDateFilter?.addEventListener("change", () => {
   setActivePeriod("custom");
   render();
 });
-els.taskHourChart?.addEventListener("pointerover", (event) => {
-  const segment = event.target.closest(".cluster-segment");
-  if (segment) showTaskHourTooltip(segment, event);
-});
-els.taskHourChart?.addEventListener("pointermove", (event) => {
-  if (event.target.closest(".cluster-segment")) moveTaskHourTooltip(event);
-});
-els.taskHourChart?.addEventListener("pointerout", (event) => {
-  if (event.target.closest(".cluster-segment")) hideTaskHourTooltip();
+["taskHourChart", "shopHourChart"].forEach((chartKey) => {
+  els[chartKey]?.addEventListener("pointerover", (event) => {
+    const segment = event.target.closest(".cluster-segment");
+    if (segment) showTaskHourTooltip(segment, event);
+  });
+  els[chartKey]?.addEventListener("pointermove", (event) => {
+    if (event.target.closest(".cluster-segment")) moveTaskHourTooltip(event);
+  });
+  els[chartKey]?.addEventListener("pointerout", (event) => {
+    if (event.target.closest(".cluster-segment")) hideTaskHourTooltip();
+  });
 });
 
 loadSheet().catch((error) => {
