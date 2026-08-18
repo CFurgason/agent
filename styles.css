@@ -304,6 +304,10 @@ select[multiple] option {
   grid-column: 1 / -1;
 }
 
+.panel-half {
+  grid-column: auto;
+}
+
 .panel-hour-analysis .cluster-chart {
   overflow-x: visible;
 }
