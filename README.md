@@ -11,7 +11,7 @@ Pages:
 
 The app reads this sheet as CSV:
 
-`https://docs.google.com/spreadsheets/d/19NMJyjtPNBEqm_STpbVeO69UbymsL7F78h5uX_7xeE8/export?format=csv&gid=0`
+`https://docs.google.com/spreadsheets/d/19NMJyjtPNBEqm_STpbVeO69UbymsL7F78h5uX_7xeE8/gviz/tq?tqx=out:csv&gid=0`
 
 The dashboard automatically maps common column names for:
 
