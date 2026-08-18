@@ -23,7 +23,6 @@ const els = {
   topShop: document.querySelector("#topShop"),
   rangeLabel: document.querySelector("#rangeLabel"),
   volumeLabel: document.querySelector("#volumeLabel"),
-  volumeShopFilter: document.querySelector("#volumeShopFilter"),
   shopLabel: document.querySelector("#shopLabel"),
   taskLabel: document.querySelector("#taskLabel"),
   taskHourLabel: document.querySelector("#taskHourLabel"),
@@ -351,16 +350,6 @@ function populateAgents() {
   }
 }
 
-function populateVolumeShops(calls) {
-  if (!els.volumeShopFilter) return;
-  const selected = els.volumeShopFilter.value || "all";
-  const shops = [...new Set(calls.map((call) => call.shop))].sort((a, b) => a.localeCompare(b));
-  els.volumeShopFilter.innerHTML = `<option value="all">All shops</option>${shops
-    .map((shop) => `<option value="${escapeHtml(shop)}">${escapeHtml(shop)}</option>`)
-    .join("")}`;
-  els.volumeShopFilter.value = shops.includes(selected) ? selected : "all";
-}
-
 function escapeHtml(value) {
   return String(value).replace(/[&<>"']/g, (char) => ({
     "&": "&amp;",
@@ -429,29 +418,19 @@ function formatHour(hour) {
   return hour > 12 ? `${hour - 12} PM` : `${hour} AM`;
 }
 
-function getVolumeCalls(calls) {
-  const shop = els.volumeShopFilter?.value || "all";
-  return calls.filter((call) => {
-    const inShop = shop === "all" || call.shop === shop;
-    return inShop;
-  });
-}
-
 function volumeFilterLabel(calls) {
   const agent = els.agentFilter?.value || "all";
-  const shop = els.volumeShopFilter?.value || "all";
   const agentLabel = agent === "all" ? "all agents" : agent;
-  const shopLabel = shop === "all" ? "all shops" : shop;
   const hours = calls.map((call) => call.calledAt.getHours());
   const hourLabel = hours.length
     ? `${formatHour(Math.min(...hours))} - ${formatHour(Math.max(...hours) + 1)}`
     : "no hours";
-  return `${calls.length.toLocaleString()} calls, ${hourLabel}, ${agentLabel}, ${shopLabel}`;
+  return `${calls.length.toLocaleString()} calls, ${hourLabel}, ${agentLabel}`;
 }
 
 function renderVolumeBreakdown(calls) {
   if (!els.volumeBreakdown) return;
-  const scopedCalls = getVolumeCalls(calls);
+  const scopedCalls = calls;
   if (!scopedCalls.length) {
     els.volumeBreakdown.innerHTML = `<p class="empty">No calls in this range.</p>`;
     return;
@@ -494,7 +473,7 @@ function taskColor(index) {
 
 function renderTaskHourChart(calls) {
   if (!els.taskHourChart) return;
-  const scopedCalls = getVolumeCalls(calls);
+  const scopedCalls = calls;
   const hours = hourRange(scopedCalls);
   const tasks = topEntries(countBy(scopedCalls, "task"), 6).map(([task]) => task);
 
@@ -546,7 +525,7 @@ function renderTaskHourChart(calls) {
 
 function renderShopHourChart(calls) {
   if (!els.shopHourChart) return;
-  const scopedCalls = getVolumeCalls(calls);
+  const scopedCalls = calls;
   const hours = hourRange(scopedCalls);
   const shops = topEntries(countBy(scopedCalls, "shop"), 8).map(([shop]) => shop);
 
@@ -641,8 +620,7 @@ function renderDashboard() {
   if (els.taskCount) els.taskCount.textContent = tasks.size.toLocaleString();
   if (els.topShop) els.topShop.textContent = topShop ? topShop[0] : "--";
   if (els.rangeLabel) els.rangeLabel.textContent = `${start.toLocaleDateString()} - ${new Date(end - 1).toLocaleDateString()}`;
-  populateVolumeShops(calls);
-  if (els.volumeLabel) els.volumeLabel.textContent = volumeFilterLabel(getVolumeCalls(calls));
+  if (els.volumeLabel) els.volumeLabel.textContent = volumeFilterLabel(calls);
   if (els.shopLabel) els.shopLabel.textContent = periodLabel;
   if (els.taskLabel) els.taskLabel.textContent = periodLabel;
 
@@ -787,7 +765,6 @@ async function loadSheet() {
 
 els.refreshButton?.addEventListener("click", () => loadSheet().catch((error) => setStatus(error.message, true)));
 els.agentFilter?.addEventListener("change", render);
-els.volumeShopFilter?.addEventListener("change", render);
 els.compareAgentChoices?.addEventListener("change", render);
 els.periodButtons.forEach((button) => {
   button.addEventListener("click", () => applyPreset(button.dataset.period));

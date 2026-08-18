@@ -300,6 +300,26 @@ select[multiple] option {
   padding: 20px;
 }
 
+.panel-wide {
+  grid-column: 1 / -1;
+}
+
+.panel-hour-analysis .cluster-chart {
+  overflow-x: visible;
+}
+
+.panel-hour-analysis .cluster-plot {
+  min-width: 0;
+}
+
+.panel-hour-analysis .cluster-row {
+  min-height: 40px;
+}
+
+.panel-hour-analysis .cluster-track {
+  height: 28px;
+}
+
 .section-title {
   display: flex;
   align-items: baseline;
@@ -318,21 +338,6 @@ select[multiple] option {
 .volume-list {
   display: grid;
   gap: 10px;
-}
-
-.volume-controls {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 10px;
-  margin-bottom: 14px;
-}
-
-.volume-controls label {
-  gap: 5px;
-}
-
-.volume-controls select {
-  min-height: 36px;
 }
 
 .volume-row {
