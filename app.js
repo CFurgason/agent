@@ -1,7 +1,6 @@
 const SHEET_ID = "19NMJyjtPNBEqm_STpbVeO69UbymsL7F78h5uX_7xeE8";
 const SHEET_GID = "0";
 const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${SHEET_GID}`;
-const LOCAL_MONTH_URL = "current-month-calls.tsv";
 
 const state = {
   rows: [],
@@ -50,33 +49,6 @@ const columnAliases = {
   date: ["date", "call date", "day"],
   time: ["time", "call time", "start time"],
 };
-
-const defaultCallHeaders = [
-  "Shop Name",
-  "Call Direction",
-  "Caller Id",
-  "Date/Time Stamp",
-  "Customer ID",
-  "Call Forward",
-  "Answered",
-  "Call Duration",
-  "Sentiment",
-  "Score",
-  "Call Agent",
-  "Task ID",
-  "Task Status",
-  "Task Completed",
-  "Task Association",
-  "Appointments",
-  "Reviews",
-  "Appointment IDs",
-  "Arrived",
-  "Opened RO IDs",
-  "Opened ROs",
-  "Posted RO IDs",
-  "Posted ROs",
-  "Revenue Total $",
-];
 
 const blockedGroupingHeaders = ["id", "key", "number", "num", "phone", "mobile", "cell", "zip"];
 const knownTaskValues = [
@@ -131,22 +103,10 @@ function parseCsv(text) {
   return rows;
 }
 
-function parseDelimited(text, delimiter) {
-  return text
-    .trim()
-    .split(/\r?\n/)
-    .map((line) => line.split(delimiter));
-}
-
-function rowsToObjects(rows, fallbackHeaders = null) {
+function rowsToObjects(rows) {
   const headers = rows[0] || [];
-  const hasHeader = headers.some((header) => normalizeHeader(header) === "date time stamp");
-  const activeHeaders = hasHeader ? headers : fallbackHeaders;
-  const dataRows = hasHeader ? rows.slice(1) : rows;
-  if (!activeHeaders) return [];
-
-  return dataRows.map((row) =>
-    Object.fromEntries(activeHeaders.map((header, index) => [header.trim(), (row[index] || "").trim()])),
+  return rows.slice(1).map((row) =>
+    Object.fromEntries(headers.map((header, index) => [header.trim(), (row[index] || "").trim()])),
   );
 }
 
@@ -256,35 +216,6 @@ function buildCalls(rows, columns) {
     })
     .filter(Boolean)
     .sort((a, b) => b.calledAt - a.calledAt);
-}
-
-function buildDataset(text, source) {
-  const parsed = source === "local" ? parseDelimited(text, "\t") : parseCsv(text);
-  const rows = rowsToObjects(parsed, source === "local" ? defaultCallHeaders : null);
-  const columns = inferColumns(rows);
-  const calls = buildCalls(rows, columns);
-  return { rows, columns, calls, source };
-}
-
-async function fetchText(url) {
-  const response = await fetch(`${url}${url.includes("?") ? "&" : "?"}cacheBust=${Date.now()}`);
-  if (!response.ok) throw new Error(`${url} returned ${response.status}`);
-  return response.text();
-}
-
-async function loadBestDataset() {
-  const sheetText = await fetchText(SHEET_URL);
-  const sheetDataset = buildDataset(sheetText, "Google Sheet");
-
-  try {
-    const localText = await fetchText(LOCAL_MONTH_URL);
-    const localDataset = buildDataset(localText, "local current-month file");
-    const sheetLatest = sheetDataset.calls[0]?.calledAt?.getTime() || 0;
-    const localLatest = localDataset.calls[0]?.calledAt?.getTime() || 0;
-    return localLatest > sheetLatest ? localDataset : sheetDataset;
-  } catch {
-    return sheetDataset;
-  }
 }
 
 function formatDateInput(date) {
@@ -800,10 +731,13 @@ function render() {
 
 async function loadSheet() {
   setStatus("Loading Google Sheet...");
-  const dataset = await loadBestDataset();
-  state.rows = dataset.rows;
-  state.columns = dataset.columns;
-  state.calls = dataset.calls;
+  const response = await fetch(`${SHEET_URL}&cacheBust=${Date.now()}`);
+  if (!response.ok) throw new Error(`Google Sheet returned ${response.status}`);
+  const csv = await response.text();
+  const parsed = parseCsv(csv);
+  state.rows = rowsToObjects(parsed);
+  state.columns = inferColumns(state.rows);
+  state.calls = buildCalls(state.rows, state.columns);
 
   const missing = ["agent", "shop", "task"].filter((key) => !state.columns[key]);
   if (!state.calls.length) {
@@ -821,7 +755,7 @@ async function loadSheet() {
     .map(([key, value]) => `${key}: ${value}`)
     .join("; ");
   const latestLoaded = state.calls[0].calledAt.toLocaleDateString();
-  setStatus(`${state.calls.length.toLocaleString()} calls loaded through ${latestLoaded} from ${dataset.source}. Columns mapped: ${mapped}${missing.length ? `. Missing optional grouping columns: ${missing.join(", ")}.` : "."}`);
+  setStatus(`${state.calls.length.toLocaleString()} calls loaded through ${latestLoaded}. Columns mapped: ${mapped}${missing.length ? `. Missing optional grouping columns: ${missing.join(", ")}.` : "."}`);
   render();
 }
 
