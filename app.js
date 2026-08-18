@@ -28,13 +28,11 @@ const els = {
   taskLabel: document.querySelector("#taskLabel"),
   taskHourLabel: document.querySelector("#taskHourLabel"),
   shopHourLabel: document.querySelector("#shopHourLabel"),
-  logLabel: document.querySelector("#logLabel"),
   volumeBreakdown: document.querySelector("#volumeBreakdown"),
   shopChart: document.querySelector("#shopChart"),
   taskChart: document.querySelector("#taskChart"),
   taskHourChart: document.querySelector("#taskHourChart"),
   shopHourChart: document.querySelector("#shopHourChart"),
-  callLog: document.querySelector("#callLog"),
   compareAgentChoices: document.querySelector("#compareAgentChoices"),
   compareSummary: document.querySelector("#compareSummary"),
   compareTable: document.querySelector("#compareTable"),
@@ -394,18 +392,6 @@ function renderRankList(element, entries) {
   `).join("");
 }
 
-function renderLog(calls) {
-  if (!els.callLog) return;
-  els.callLog.innerHTML = calls.slice(0, 200).map((call) => `
-    <tr>
-      <td>${call.calledAt.toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}</td>
-      <td>${escapeHtml(call.agent)}</td>
-      <td>${escapeHtml(call.shop)}</td>
-      <td>${escapeHtml(call.task)}</td>
-    </tr>
-  `).join("") || `<tr><td colspan="4" class="empty">No calls in this range.</td></tr>`;
-}
-
 function formatHour(hour) {
   if (hour === 0) return "12 AM";
   if (hour === 12) return "12 PM";
@@ -628,14 +614,12 @@ function renderDashboard() {
   if (els.volumeLabel) els.volumeLabel.textContent = volumeFilterLabel(getVolumeCalls(calls));
   if (els.shopLabel) els.shopLabel.textContent = periodLabel;
   if (els.taskLabel) els.taskLabel.textContent = periodLabel;
-  if (els.logLabel) els.logLabel.textContent = `${Math.min(calls.length, 200)} shown`;
 
   renderRankList(els.shopChart, topEntries(shops));
   renderVolumeBreakdown(calls);
   renderRankList(els.taskChart, topEntries(tasks));
   renderTaskHourChart(calls);
   renderShopHourChart(calls);
-  renderLog(calls);
 }
 
 function agentMetrics(calls, agent) {
