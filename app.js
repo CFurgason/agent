@@ -1,6 +1,6 @@
 const SHEET_ID = "19NMJyjtPNBEqm_STpbVeO69UbymsL7F78h5uX_7xeE8";
 const SHEET_GID = "0";
-const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${SHEET_GID}`;
+const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${SHEET_GID}`;
 
 const state = {
   rows: [],
@@ -65,7 +65,7 @@ function normalizeHeader(value) {
   return String(value || "")
     .trim()
     .toLowerCase()
-    .replace(/[_-]+/g, " ")
+    .replace(/[_/-]+/g, " ")
     .replace(/\s+/g, " ");
 }
 
@@ -277,12 +277,8 @@ function callsInCurrentRange(calls) {
 
 function getPresetAnchor(period) {
   const selectedStart = parseDateInput(els.startDateFilter.value);
-  if (period !== "day") return selectedStart || state.calls[0]?.calledAt || new Date();
-
-  const scopedCalls = callsForSelectedAgent();
-  return scopedCalls[0]?.calledAt
-    || selectedStart
-    || new Date();
+  if (period === "day") return state.calls[0]?.calledAt || selectedStart || new Date();
+  return selectedStart || state.calls[0]?.calledAt || new Date();
 }
 
 function applyPreset(period, selectedDate = getPresetAnchor(period)) {
@@ -749,7 +745,7 @@ async function loadSheet() {
   }
 
   populateAgents();
-  if (!els.startDateFilter.value || !els.endDateFilter.value) {
+  if (state.period !== "custom" || !els.startDateFilter.value || !els.endDateFilter.value) {
     const { start, end } = getPresetRange(state.period, state.calls[0].calledAt);
     setDateInputs(start, end);
   }
@@ -758,7 +754,8 @@ async function loadSheet() {
     .filter(([, value]) => value)
     .map(([key, value]) => `${key}: ${value}`)
     .join("; ");
-  setStatus(`${state.calls.length.toLocaleString()} calls loaded. Columns mapped: ${mapped}${missing.length ? `. Missing optional grouping columns: ${missing.join(", ")}.` : "."}`);
+  const latestLoaded = state.calls[0].calledAt.toLocaleDateString();
+  setStatus(`${state.calls.length.toLocaleString()} calls loaded through ${latestLoaded}. Columns mapped: ${mapped}${missing.length ? `. Missing optional grouping columns: ${missing.join(", ")}.` : "."}`);
   render();
 }
 
