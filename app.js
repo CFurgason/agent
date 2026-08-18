@@ -468,7 +468,7 @@ function hourRange(calls) {
 }
 
 function taskColor(index) {
-  return ["#2f5f8f", "#4f7f72", "#8a6f3d", "#7a4f68", "#5f6f89", "#8f5f4a", "#3f6f7f", "#6a7550"][index % 8];
+  return ["#2563eb", "#14b8a6", "#8b5cf6", "#06b6d4", "#ec4899", "#22c55e", "#6366f1", "#f43f5e"][index % 8];
 }
 
 function renderTaskHourChart(calls) {
