@@ -325,6 +325,11 @@ function setStatus(message, isError = false) {
   els.statusPanel.classList.toggle("error", isError);
 }
 
+function removeLegacyCallLog() {
+  document.querySelector("#callLog")?.closest(".panel")?.remove();
+  document.querySelector("#logLabel")?.closest(".panel")?.remove();
+}
+
 function populateAgents() {
   const agents = [...new Set(state.calls.map((call) => call.agent))].sort((a, b) => a.localeCompare(b));
   if (els.agentFilter) {
@@ -720,6 +725,7 @@ function renderComparison() {
 }
 
 function render() {
+  removeLegacyCallLog();
   renderDashboard();
   renderComparison();
 }
