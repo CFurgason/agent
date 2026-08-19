@@ -583,7 +583,7 @@ function renderAgentFlow(calls) {
           <span>${agentCalls.length.toLocaleString()} calls</span>
           <small>${formatFlowEndpoint(firstCall.calledAt)} - ${formatFlowEndpoint(lastCall.calledAt)}</small>
         </div>
-        <div class="flow-track" style="grid-template-columns: repeat(${buckets.length}, minmax(128px, 1fr));">
+        <div class="flow-track" style="grid-template-columns: repeat(${buckets.length}, minmax(260px, 1fr));">
           ${cells}
         </div>
       </div>
@@ -591,7 +591,7 @@ function renderAgentFlow(calls) {
   }).join("");
 
   els.agentFlow.innerHTML = `
-    <div class="flow-header" style="grid-template-columns: 190px repeat(${buckets.length}, minmax(128px, 1fr));">
+    <div class="flow-header" style="grid-template-columns: 190px repeat(${buckets.length}, minmax(260px, 1fr));">
       <div></div>
       ${buckets.map((bucket) => `<span>${bucketLabel(bucket, state.breakdown)}</span>`).join("")}
     </div>
