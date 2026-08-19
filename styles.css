@@ -1,7 +1,7 @@
 :root {
   color-scheme: dark;
-  --bg: #14120f;
-  --bg-2: #1d1a16;
+  --bg: #2b2925;
+  --bg-2: #35322d;
   --panel: #f7f3ea;
   --panel-2: #ebe2d2;
   --ink: #171410;
@@ -54,7 +54,7 @@ body {
   padding: 4px;
   border: 1px solid rgba(255, 250, 240, 0.14);
   border-radius: 8px;
-  background: #0e0c0a;
+  background: #24211d;
 }
 
 .page-nav a {
@@ -117,7 +117,7 @@ main {
   padding: 14px;
   border: 1px solid rgba(255, 250, 240, 0.14);
   border-radius: 8px;
-  background: #0e0c0a;
+  background: #24211d;
 }
 
 .compare-controls {
