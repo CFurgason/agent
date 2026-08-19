@@ -1023,6 +1023,28 @@ select[multiple] option {
   font-variant-numeric: tabular-nums;
 }
 
+.shop-task-tooltip {
+  min-width: 230px;
+  max-width: 320px;
+}
+
+.shop-task-tooltip ul {
+  display: grid;
+  gap: 3px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.shop-task-tooltip li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--cream);
+  font-size: 12px;
+  font-weight: 800;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;

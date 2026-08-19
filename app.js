@@ -522,6 +522,12 @@ function bucketKey(date, breakdown) {
   return bucketStart(date, breakdown).toISOString();
 }
 
+function taskBreakdown(calls) {
+  return topEntries(countBy(calls, "task"), 12)
+    .map(([task, count]) => `${escapeHtml(task)}: ${count.toLocaleString()}`)
+    .join("|");
+}
+
 function renderAgentShopCoverage(calls) {
   const agents = topEntries(countBy(calls, "agent"), 20).map(([agent]) => agent);
   return agents.map((agent) => {
@@ -531,9 +537,18 @@ function renderAgentShopCoverage(calls) {
       <div class="coverage-agent">
         <strong>${escapeHtml(agent)}</strong>
         <div class="coverage-shops">
-          ${shops.map(([shop, count]) => `
-            <span title="${escapeHtml(shop)}">${escapeHtml(shop)} <b>${count.toLocaleString()}</b></span>
-          `).join("")}
+          ${shops.map(([shop, count]) => {
+            const shopCalls = agentCalls.filter((call) => call.shop === shop);
+            return `
+              <span
+                class="shop-chip"
+                data-shop="${escapeHtml(shop)}"
+                data-agent="${escapeHtml(agent)}"
+                data-call-count="${count.toLocaleString()}"
+                data-task-breakdown="${taskBreakdown(shopCalls)}"
+              >${escapeHtml(shop)} <b>${count.toLocaleString()}</b></span>
+            `;
+          }).join("")}
         </div>
       </div>
     `;
@@ -568,9 +583,18 @@ function renderAgentFlow(calls) {
         <div class="flow-cell active-cell">
           <div class="flow-count">${bucketCallsForAgent.length.toLocaleString()}</div>
           <div class="flow-shops">
-            ${shopVisits.map(([shop, count]) => `
-              <span title="${escapeHtml(shop)}">${escapeHtml(shop)}${count > 1 ? ` <b>${count.toLocaleString()}</b>` : ""}</span>
-            `).join("")}
+            ${shopVisits.map(([shop, count]) => {
+              const shopCalls = bucketCallsForAgent.filter((call) => call.shop === shop);
+              return `
+                <span
+                  class="shop-chip"
+                  data-shop="${escapeHtml(shop)}"
+                  data-agent="${escapeHtml(agent)}"
+                  data-call-count="${count.toLocaleString()}"
+                  data-task-breakdown="${taskBreakdown(shopCalls)}"
+                >${escapeHtml(shop)}${count > 1 ? ` <b>${count.toLocaleString()}</b>` : ""}</span>
+              `;
+            }).join("")}
           </div>
         </div>
       `;
@@ -862,6 +886,29 @@ function showTaskHourTooltip(segment, event) {
   moveTaskHourTooltip(event);
 }
 
+function showShopTaskTooltip(chip, event) {
+  if (!taskHourTooltip) {
+    taskHourTooltip = document.createElement("div");
+    taskHourTooltip.className = "cluster-tooltip shop-task-tooltip";
+    taskHourTooltip.setAttribute("role", "tooltip");
+    document.body.appendChild(taskHourTooltip);
+  }
+
+  const tasks = (chip.dataset.taskBreakdown || "")
+    .split("|")
+    .filter(Boolean)
+    .map((item) => `<li>${item}</li>`)
+    .join("");
+
+  taskHourTooltip.className = "cluster-tooltip shop-task-tooltip visible";
+  taskHourTooltip.innerHTML = `
+    <strong>${escapeHtml(chip.dataset.shop || "")}</strong>
+    <span>${escapeHtml(chip.dataset.agent || "")} - ${escapeHtml(chip.dataset.callCount || "0")} calls</span>
+    <ul>${tasks || "<li>No task type found</li>"}</ul>
+  `;
+  moveTaskHourTooltip(event);
+}
+
 function moveTaskHourTooltip(event) {
   if (!taskHourTooltip) return;
   const margin = 14;
@@ -1084,6 +1131,16 @@ els.endDateFilter?.addEventListener("change", () => {
   els[chartKey]?.addEventListener("pointerout", (event) => {
     if (event.target.closest(".cluster-segment")) hideTaskHourTooltip();
   });
+});
+document.addEventListener("pointerover", (event) => {
+  const chip = event.target.closest(".shop-chip");
+  if (chip) showShopTaskTooltip(chip, event);
+});
+document.addEventListener("pointermove", (event) => {
+  if (event.target.closest(".shop-chip")) moveTaskHourTooltip(event);
+});
+document.addEventListener("pointerout", (event) => {
+  if (event.target.closest(".shop-chip")) hideTaskHourTooltip();
 });
 
 loadSheet().catch((error) => {
