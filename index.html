@@ -3,14 +3,14 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Call Agent Dashboard</title>
-    <link rel="stylesheet" href="styles.css?v=20" />
+    <title>Who Is Calling Which Shop | Call Agent Dashboard</title>
+    <link rel="stylesheet" href="styles.css?v=30" />
   </head>
   <body>
     <header class="topbar">
       <div>
         <p class="eyebrow">Call Agent Dashboard</p>
-        <h1>Call activity by agent, shop, and task</h1>
+        <h1>Who is making calls at which shop?</h1>
       </div>
       <div class="top-actions">
         <nav class="page-nav" aria-label="Dashboard pages">
@@ -37,6 +37,14 @@
             <button class="period-button" type="button" data-period="month">Month</button>
           </div>
         </fieldset>
+        <fieldset class="period-control">
+          <legend>Breakdown</legend>
+          <div class="segmented" role="group" aria-label="Time breakdown">
+            <button class="breakdown-button active" type="button" data-breakdown="hourly">Hourly</button>
+            <button class="breakdown-button" type="button" data-breakdown="daily">Daily</button>
+            <button class="breakdown-button" type="button" data-breakdown="weekly">Weekly</button>
+          </div>
+        </fieldset>
         <div class="date-range">
           <label>
             Start date
@@ -57,42 +65,42 @@
           <strong id="totalCalls">0</strong>
         </article>
         <article>
-          <span>Shops reached</span>
+          <span>Active agents</span>
+          <strong id="agentCount">0</strong>
+        </article>
+        <article>
+          <span>Active shops</span>
           <strong id="shopCount">0</strong>
         </article>
         <article>
-          <span>Task types</span>
-          <strong id="taskCount">0</strong>
-        </article>
-        <article>
-          <span>Top shop</span>
-          <strong id="topShop">--</strong>
+          <span>Top agent/shop</span>
+          <strong id="topPair">--</strong>
         </article>
       </section>
 
       <section class="layout">
-        <div class="panel">
+        <div class="panel panel-wide focus-panel">
           <div class="section-title">
-            <h2>Calls by hour</h2>
-            <span id="volumeLabel"></span>
+            <h2>Agent by shop call map</h2>
+            <span id="matrixLabel"></span>
           </div>
-          <div id="volumeBreakdown" class="volume-list"></div>
+          <div id="agentShopMatrix" class="matrix-wrap"></div>
         </div>
 
         <div class="panel">
           <div class="section-title">
-            <h2>Shops by hour</h2>
-            <span id="shopHourLabel"></span>
+            <h2 id="timeBreakdownTitle">Hourly activity</h2>
+            <span id="timeBreakdownLabel"></span>
           </div>
-          <div id="shopHourChart" class="cluster-chart"></div>
+          <div id="timeBreakdown" class="table-wrap"></div>
         </div>
 
-        <div class="panel panel-wide panel-hour-analysis">
+        <div class="panel">
           <div class="section-title">
-            <h2>Task type by hour</h2>
-            <span id="taskHourLabel"></span>
+            <h2>Busiest caller/shop pairs</h2>
+            <span id="pairLabel"></span>
           </div>
-          <div id="taskHourChart" class="cluster-chart"></div>
+          <div id="agentShopPairs" class="pair-list"></div>
         </div>
 
         <div class="panel panel-half">
@@ -105,7 +113,7 @@
 
         <div class="panel panel-half">
           <div class="section-title">
-            <h2>Calls by task type</h2>
+            <h2>Task mix</h2>
             <span id="taskLabel"></span>
           </div>
           <div id="taskChart" class="column-chart-wrap"></div>
@@ -114,6 +122,6 @@
       </section>
     </main>
 
-    <script src="app.js?v=26"></script>
+    <script src="app.js?v=30"></script>
   </body>
 </html>
