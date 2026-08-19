@@ -354,17 +354,20 @@ select[multiple] option {
   border-top: 7px solid var(--mint);
 }
 
-.activity-panel {
+.activity-panel,
+.pair-panel {
   display: flex;
   flex-direction: column;
-  min-height: 720px;
+  height: 560px;
+  min-height: 0;
 }
 
-.activity-panel .table-wrap {
+.activity-panel .table-wrap,
+.pair-panel .pair-list {
   flex: 1 1 auto;
-  height: 100%;
   min-height: 0;
   max-height: none;
+  overflow: auto;
 }
 
 .section-title {
@@ -1049,6 +1052,12 @@ td {
   .metric-grid,
   .layout {
     grid-template-columns: 1fr;
+  }
+
+  .activity-panel,
+  .pair-panel {
+    height: auto;
+    min-height: 420px;
   }
 }
 
