@@ -286,9 +286,19 @@ function setActiveBreakdown(breakdown) {
   });
 }
 
+function selectedAgentValues() {
+  if (!els.agentFilter) return [];
+  return [...els.agentFilter.selectedOptions].map((option) => option.value);
+}
+
+function selectedAgentSet() {
+  const selected = selectedAgentValues().filter((agent) => agent !== "all");
+  return selected.length ? new Set(selected) : null;
+}
+
 function callsForSelectedAgent() {
-  const agent = els.agentFilter?.value || "all";
-  return state.calls.filter((call) => agent === "all" || call.agent === agent);
+  const selected = selectedAgentSet();
+  return state.calls.filter((call) => !selected || selected.has(call.agent));
 }
 
 function callsInCurrentRange(calls) {
@@ -365,9 +375,14 @@ function removeLegacyCallLog() {
 function populateAgents() {
   const agents = [...new Set(state.calls.map((call) => call.agent))].sort((a, b) => a.localeCompare(b));
   if (els.agentFilter) {
+    const previous = new Set(selectedAgentValues());
     els.agentFilter.innerHTML = `<option value="all">All agents</option>${agents
       .map((agent) => `<option value="${escapeHtml(agent)}">${escapeHtml(agent)}</option>`)
       .join("")}`;
+    const selected = previous.size ? previous : new Set(["all"]);
+    [...els.agentFilter.options].forEach((option) => {
+      option.selected = selected.has(option.value);
+    });
   }
   if (els.compareAgentChoices) {
     const selected = state.compareAgents.length ? new Set(state.compareAgents) : new Set(agents.slice(0, 3));
@@ -395,10 +410,10 @@ function escapeHtml(value) {
 
 function filteredCalls() {
   const { start, end } = getRange();
-  const agent = els.agentFilter?.value || "all";
+  const selected = selectedAgentSet();
   return state.calls.filter((call) => {
     const inDate = call.calledAt >= start && call.calledAt < end;
-    const inAgent = agent === "all" || call.agent === agent;
+    const inAgent = !selected || selected.has(call.agent);
     return inDate && inAgent;
   });
 }
@@ -712,8 +727,12 @@ function formatHour(hour) {
 }
 
 function volumeFilterLabel(calls) {
-  const agent = els.agentFilter?.value || "all";
-  const agentLabel = agent === "all" ? "all agents" : agent;
+  const selected = selectedAgentValues().filter((agent) => agent !== "all");
+  const agentLabel = selected.length === 0
+    ? "all agents"
+    : selected.length === 1
+      ? selected[0]
+      : `${selected.length} agents`;
   const hours = calls.map((call) => call.calledAt.getHours());
   const hourLabel = hours.length
     ? `${formatHour(Math.min(...hours))} - ${formatHour(Math.max(...hours) + 1)}`
@@ -1095,7 +1114,13 @@ async function loadSheet() {
 }
 
 els.refreshButton?.addEventListener("click", () => loadSheet().catch((error) => setStatus(error.message, true)));
-els.agentFilter?.addEventListener("change", render);
+els.agentFilter?.addEventListener("change", () => {
+  const selected = selectedAgentValues();
+  if (selected.includes("all") && selected.length > 1) {
+    els.agentFilter.querySelector('option[value="all"]').selected = false;
+  }
+  render();
+});
 els.compareAgentChoices?.addEventListener("change", render);
 els.periodButtons.forEach((button) => {
   button.addEventListener("click", () => applyPreset(button.dataset.period));
