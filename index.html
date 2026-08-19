@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Who Is Calling Which Shop | Call Agent Dashboard</title>
-    <link rel="stylesheet" href="styles.css?v=40" />
+    <link rel="stylesheet" href="styles.css?v=41" />
   </head>
   <body>
     <header class="topbar">
@@ -21,9 +21,14 @@
 
     <main>
       <section class="controls" aria-label="Dashboard filters">
-        <label>
+        <label class="agent-picker-label">
           Agents
-          <select id="agentFilter" multiple size="5"></select>
+          <div class="agent-picker" id="agentFilter">
+            <button id="agentFilterButton" class="agent-filter-button" type="button" aria-haspopup="true" aria-expanded="false">
+              All agents
+            </button>
+            <div id="agentFilterMenu" class="agent-filter-menu" role="group" aria-label="Agent choices"></div>
+          </div>
         </label>
         <fieldset class="period-control">
           <legend>Date range</legend>
@@ -106,6 +111,6 @@
       </section>
     </main>
 
-    <script src="app.js?v=40"></script>
+    <script src="app.js?v=41"></script>
   </body>
 </html>

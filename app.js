@@ -14,6 +14,8 @@ const state = {
 const els = {
   refreshButton: document.querySelector("#refreshButton"),
   agentFilter: document.querySelector("#agentFilter"),
+  agentFilterButton: document.querySelector("#agentFilterButton"),
+  agentFilterMenu: document.querySelector("#agentFilterMenu"),
   periodButtons: [...document.querySelectorAll(".period-button")],
   breakdownButtons: [...document.querySelectorAll(".breakdown-button")],
   startDateFilter: document.querySelector("#startDateFilter"),
@@ -287,8 +289,9 @@ function setActiveBreakdown(breakdown) {
 }
 
 function selectedAgentValues() {
-  if (!els.agentFilter) return [];
-  return [...els.agentFilter.selectedOptions].map((option) => option.value);
+  if (!els.agentFilterMenu) return [];
+  return [...els.agentFilterMenu.querySelectorAll('input[name="agentFilter"]:checked')]
+    .map((input) => input.value);
 }
 
 function selectedAgentSet() {
@@ -374,15 +377,18 @@ function removeLegacyCallLog() {
 
 function populateAgents() {
   const agents = [...new Set(state.calls.map((call) => call.agent))].sort((a, b) => a.localeCompare(b));
-  if (els.agentFilter) {
+  if (els.agentFilterMenu) {
     const previous = new Set(selectedAgentValues());
-    els.agentFilter.innerHTML = `<option value="all">All agents</option>${agents
-      .map((agent) => `<option value="${escapeHtml(agent)}">${escapeHtml(agent)}</option>`)
-      .join("")}`;
-    const selected = previous.size ? previous : new Set(["all"]);
-    [...els.agentFilter.options].forEach((option) => {
-      option.selected = selected.has(option.value);
-    });
+    const selected = previous.size ? previous : new Set();
+    els.agentFilterMenu.innerHTML = agents
+      .map((agent) => `
+        <label class="agent-filter-option">
+          <input type="checkbox" name="agentFilter" value="${escapeHtml(agent)}" ${selected.has(agent) ? "checked" : ""} />
+          <span>${escapeHtml(agent)}</span>
+        </label>
+      `)
+      .join("");
+    updateAgentFilterButton();
   }
   if (els.compareAgentChoices) {
     const selected = state.compareAgents.length ? new Set(state.compareAgents) : new Set(agents.slice(0, 3));
@@ -396,6 +402,16 @@ function populateAgents() {
       .join("");
     state.compareAgents = [...els.compareAgentChoices.querySelectorAll("input:checked")].map((input) => input.value);
   }
+}
+
+function updateAgentFilterButton() {
+  if (!els.agentFilterButton) return;
+  const selected = selectedAgentValues();
+  els.agentFilterButton.textContent = selected.length === 0
+    ? "All agents"
+    : selected.length === 1
+      ? selected[0]
+      : `${selected.length} agents selected`;
 }
 
 function escapeHtml(value) {
@@ -1114,12 +1130,19 @@ async function loadSheet() {
 }
 
 els.refreshButton?.addEventListener("click", () => loadSheet().catch((error) => setStatus(error.message, true)));
-els.agentFilter?.addEventListener("change", () => {
-  const selected = selectedAgentValues();
-  if (selected.includes("all") && selected.length > 1) {
-    els.agentFilter.querySelector('option[value="all"]').selected = false;
-  }
+els.agentFilterButton?.addEventListener("click", () => {
+  const isOpen = els.agentFilter?.classList.toggle("open");
+  els.agentFilterButton.setAttribute("aria-expanded", isOpen ? "true" : "false");
+});
+els.agentFilterMenu?.addEventListener("change", () => {
+  updateAgentFilterButton();
   render();
+});
+document.addEventListener("pointerdown", (event) => {
+  if (!els.agentFilter?.contains(event.target)) {
+    els.agentFilter?.classList.remove("open");
+    els.agentFilterButton?.setAttribute("aria-expanded", "false");
+  }
 });
 els.compareAgentChoices?.addEventListener("change", render);
 els.periodButtons.forEach((button) => {
