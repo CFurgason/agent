@@ -28,6 +28,8 @@ const els = {
   rangeLabel: document.querySelector("#rangeLabel"),
   matrixLabel: document.querySelector("#matrixLabel"),
   pairLabel: document.querySelector("#pairLabel"),
+  agentFlowTitle: document.querySelector("#agentFlowTitle"),
+  agentFlowLabel: document.querySelector("#agentFlowLabel"),
   timeBreakdownTitle: document.querySelector("#timeBreakdownTitle"),
   timeBreakdownLabel: document.querySelector("#timeBreakdownLabel"),
   volumeLabel: document.querySelector("#volumeLabel"),
@@ -42,6 +44,7 @@ const els = {
   shopHourChart: document.querySelector("#shopHourChart"),
   agentShopMatrix: document.querySelector("#agentShopMatrix"),
   agentShopPairs: document.querySelector("#agentShopPairs"),
+  agentFlow: document.querySelector("#agentFlow"),
   timeBreakdown: document.querySelector("#timeBreakdown"),
   compareAgentChoices: document.querySelector("#compareAgentChoices"),
   compareSummary: document.querySelector("#compareSummary"),
@@ -495,6 +498,10 @@ function bucketLabel(date, breakdown) {
   return `${date.toLocaleDateString(undefined, { month: "short", day: "numeric" })}, ${formatHour(date.getHours())} - ${formatHour(date.getHours() + 1)}`;
 }
 
+function formatFlowEndpoint(date) {
+  return `${date.toLocaleDateString(undefined, { month: "short", day: "numeric" })} ${formatHour(date.getHours())}`;
+}
+
 function bucketCalls(calls, breakdown) {
   const buckets = calls.reduce((map, call) => {
     const start = bucketStart(call.calledAt, breakdown);
@@ -504,6 +511,92 @@ function bucketCalls(calls, breakdown) {
     return map;
   }, new Map());
   return [...buckets.values()].sort((a, b) => a.start - b.start);
+}
+
+function bucketSequence(calls, breakdown) {
+  const bucketMap = bucketCalls(calls, breakdown);
+  return bucketMap.map((bucket) => bucket.start);
+}
+
+function bucketKey(date, breakdown) {
+  return bucketStart(date, breakdown).toISOString();
+}
+
+function renderAgentShopCoverage(calls) {
+  const agents = topEntries(countBy(calls, "agent"), 20).map(([agent]) => agent);
+  return agents.map((agent) => {
+    const agentCalls = calls.filter((call) => call.agent === agent);
+    const shops = topEntries(countBy(agentCalls, "shop"), 50);
+    return `
+      <div class="coverage-agent">
+        <strong>${escapeHtml(agent)}</strong>
+        <div class="coverage-shops">
+          ${shops.map(([shop, count]) => `
+            <span title="${escapeHtml(shop)}">${escapeHtml(shop)} <b>${count.toLocaleString()}</b></span>
+          `).join("")}
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+function renderAgentFlow(calls) {
+  if (!els.agentFlow) return;
+  const agents = topEntries(countBy(calls, "agent"), 12).map(([agent]) => agent);
+  const buckets = bucketSequence(calls, state.breakdown);
+  const title = state.breakdown === "weekly" ? "Weekly agent call flow" : state.breakdown === "daily" ? "Daily agent call flow" : "Hourly agent call flow";
+  if (els.agentFlowTitle) els.agentFlowTitle.textContent = title;
+
+  if (!agents.length || !buckets.length) {
+    els.agentFlow.innerHTML = `<p class="empty">No calls in this range.</p>`;
+    return;
+  }
+
+  const rows = agents.map((agent) => {
+    const agentCalls = calls
+      .filter((call) => call.agent === agent)
+      .sort((a, b) => a.calledAt - b.calledAt);
+    const firstCall = agentCalls[0];
+    const lastCall = agentCalls[agentCalls.length - 1];
+    const cells = buckets.map((bucket) => {
+      const key = bucket.toISOString();
+      const bucketCallsForAgent = agentCalls.filter((call) => bucketKey(call.calledAt, state.breakdown) === key);
+      if (!bucketCallsForAgent.length) return `<div class="flow-cell empty-cell" aria-label="No calls"></div>`;
+
+      const shopVisits = topEntries(countBy(bucketCallsForAgent, "shop"), 8);
+      return `
+        <div class="flow-cell active-cell">
+          <div class="flow-count">${bucketCallsForAgent.length.toLocaleString()}</div>
+          <div class="flow-shops">
+            ${shopVisits.map(([shop, count]) => `
+              <span title="${escapeHtml(shop)}">${escapeHtml(shop)}${count > 1 ? ` <b>${count.toLocaleString()}</b>` : ""}</span>
+            `).join("")}
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    return `
+      <div class="flow-row">
+        <div class="flow-agent">
+          <strong title="${escapeHtml(agent)}">${escapeHtml(agent)}</strong>
+          <span>${agentCalls.length.toLocaleString()} calls</span>
+          <small>${formatFlowEndpoint(firstCall.calledAt)} - ${formatFlowEndpoint(lastCall.calledAt)}</small>
+        </div>
+        <div class="flow-track" style="grid-template-columns: repeat(${buckets.length}, minmax(128px, 1fr));">
+          ${cells}
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  els.agentFlow.innerHTML = `
+    <div class="flow-header" style="grid-template-columns: 190px repeat(${buckets.length}, minmax(128px, 1fr));">
+      <div></div>
+      ${buckets.map((bucket) => `<span>${bucketLabel(bucket, state.breakdown)}</span>`).join("")}
+    </div>
+    <div class="flow-body">${rows}</div>
+  `;
 }
 
 function renderTimeBreakdown(calls) {
@@ -519,10 +612,8 @@ function renderTimeBreakdown(calls) {
 
   const rows = buckets.map((bucket) => {
     const agents = countBy(bucket.calls, "agent");
-    const shops = countBy(bucket.calls, "shop");
     const pairs = countPairs(bucket.calls);
     const topAgent = topEntries(agents, 1)[0];
-    const topShop = topEntries(shops, 1)[0];
     const topPairEntry = topEntries(pairs, 1)[0];
     const topPairValue = topPairEntry ? splitPairKey(topPairEntry[0]) : null;
     return `
@@ -530,7 +621,7 @@ function renderTimeBreakdown(calls) {
         <th scope="row">${bucketLabel(bucket.start, state.breakdown)}</th>
         <td>${bucket.calls.length.toLocaleString()}</td>
         <td>${topAgent ? `${escapeHtml(topAgent[0])} <span>${topAgent[1].toLocaleString()}</span>` : "--"}</td>
-        <td>${topShop ? `${escapeHtml(topShop[0])} <span>${topShop[1].toLocaleString()}</span>` : "--"}</td>
+        <td class="coverage-cell">${renderAgentShopCoverage(bucket.calls)}</td>
         <td>${topPairValue ? `${escapeHtml(topPairValue.agent)} / ${escapeHtml(topPairValue.shop)} <span>${topPairEntry[1].toLocaleString()}</span>` : "--"}</td>
       </tr>
     `;
@@ -543,7 +634,7 @@ function renderTimeBreakdown(calls) {
           <th>Window</th>
           <th>Calls</th>
           <th>Top agent</th>
-          <th>Top shop</th>
+          <th>Agents and shops called</th>
           <th>Top agent/shop</th>
         </tr>
       </thead>
@@ -810,12 +901,14 @@ function renderDashboard() {
   if (els.rangeLabel) els.rangeLabel.textContent = rangeText;
   if (els.matrixLabel) els.matrixLabel.textContent = `${agents.size.toLocaleString()} agents x ${shops.size.toLocaleString()} shops`;
   if (els.pairLabel) els.pairLabel.textContent = rangeText;
+  if (els.agentFlowLabel) els.agentFlowLabel.textContent = rangeText;
   if (els.timeBreakdownLabel) els.timeBreakdownLabel.textContent = rangeText;
   if (els.volumeLabel) els.volumeLabel.textContent = volumeFilterLabel(calls);
   if (els.shopLabel) els.shopLabel.textContent = periodLabel;
   if (els.taskLabel) els.taskLabel.textContent = periodLabel;
 
   renderAgentShopMatrix(calls);
+  renderAgentFlow(calls);
   renderAgentShopPairs(calls);
   renderTimeBreakdown(calls);
   renderColumnChart(els.shopChart, topEntries(shops, 10));
