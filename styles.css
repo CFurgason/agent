@@ -819,47 +819,65 @@ select[multiple] option {
 
 .coverage-cell {
   display: grid;
-  gap: 7px;
+  gap: 8px;
   min-width: 0;
 }
 
 .coverage-agent {
   display: grid;
-  grid-template-columns: minmax(120px, 0.22fr) minmax(0, 1fr);
-  gap: 8px;
-  align-items: start;
+  grid-template-columns: 170px minmax(0, 1fr);
+  gap: 10px;
+  align-items: stretch;
+  padding: 7px;
+  border: 1px solid #d8cbb8;
+  border-left: 5px solid var(--mint-dark);
+  border-radius: 7px;
+  background: #fff7e8;
+}
+
+.coverage-agent:nth-child(even) {
+  border-left-color: var(--amber);
+  background: #f6eddd;
 }
 
 .coverage-agent strong {
-  overflow: hidden;
-  color: var(--ink);
-  font-size: 13px;
+  display: flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 7px 9px;
+  overflow-wrap: anywhere;
+  border-radius: 5px;
+  background: #211d18;
+  color: var(--cream);
+  font-size: 12px;
   font-weight: 950;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.15;
 }
 
 .coverage-shops {
   display: flex;
   flex-wrap: wrap;
-  gap: 5px;
+  gap: 6px;
+  align-content: start;
+  min-width: 0;
+  padding: 2px 0;
 }
 
 .activity-table .coverage-shops span {
   display: inline-flex;
   align-items: center;
-  max-width: 160px;
+  max-width: 210px;
   min-width: 0;
-  min-height: 20px;
+  min-height: 24px;
   margin: 0;
-  padding: 1px 6px;
+  padding: 2px 7px;
   overflow: hidden;
-  border: 1px solid #d8cbb8;
+  border: 1px solid #cbbca6;
   border-radius: 5px;
-  background: #f3eadc;
+  background: #ffffff;
   color: var(--ink);
-  font-size: 11px;
-  font-weight: 850;
+  font-size: 12px;
+  font-weight: 900;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
