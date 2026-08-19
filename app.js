@@ -622,6 +622,11 @@ function renderTimeBreakdown(calls) {
 
   els.timeBreakdown.innerHTML = `
     <table class="activity-table">
+      <colgroup>
+        <col class="window-col" />
+        <col class="calls-col" />
+        <col class="coverage-col" />
+      </colgroup>
       <thead>
         <tr>
           <th>Window</th>
