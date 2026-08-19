@@ -271,8 +271,9 @@ select[multiple] option {
 
 .metric-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(140px, 1fr));
+  grid-template-columns: repeat(3, 210px);
   gap: 12px;
+  justify-content: start;
   margin-bottom: 16px;
 }
 
@@ -297,10 +298,6 @@ select[multiple] option {
 
 .metric-grid article:nth-child(3) {
   border-top-color: var(--coral);
-}
-
-.metric-grid article:nth-child(4) {
-  border-top-color: var(--violet);
 }
 
 .metric-grid span,
