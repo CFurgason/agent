@@ -354,6 +354,16 @@ select[multiple] option {
   border-top: 7px solid var(--mint);
 }
 
+.activity-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 620px;
+}
+
+.activity-panel .table-wrap {
+  flex: 1;
+}
+
 .section-title {
   display: flex;
   align-items: baseline;
@@ -715,7 +725,7 @@ select[multiple] option {
 }
 
 .table-wrap {
-  max-height: 440px;
+  max-height: 640px;
 }
 
 .matrix-wrap table {
@@ -774,17 +784,17 @@ select[multiple] option {
 }
 
 .activity-table {
-  min-width: 980px;
+  min-width: 760px;
 }
 
-.activity-table th:nth-child(4) {
-  min-width: 430px;
+.activity-table th:nth-child(3) {
+  min-width: 540px;
 }
 
 .coverage-cell {
   display: grid;
   gap: 9px;
-  min-width: 420px;
+  min-width: 540px;
 }
 
 .coverage-agent {

@@ -611,18 +611,11 @@ function renderTimeBreakdown(calls) {
   }
 
   const rows = buckets.map((bucket) => {
-    const agents = countBy(bucket.calls, "agent");
-    const pairs = countPairs(bucket.calls);
-    const topAgent = topEntries(agents, 1)[0];
-    const topPairEntry = topEntries(pairs, 1)[0];
-    const topPairValue = topPairEntry ? splitPairKey(topPairEntry[0]) : null;
     return `
       <tr>
         <th scope="row">${bucketLabel(bucket.start, state.breakdown)}</th>
         <td>${bucket.calls.length.toLocaleString()}</td>
-        <td>${topAgent ? `${escapeHtml(topAgent[0])} <span>${topAgent[1].toLocaleString()}</span>` : "--"}</td>
         <td class="coverage-cell">${renderAgentShopCoverage(bucket.calls)}</td>
-        <td>${topPairValue ? `${escapeHtml(topPairValue.agent)} / ${escapeHtml(topPairValue.shop)} <span>${topPairEntry[1].toLocaleString()}</span>` : "--"}</td>
       </tr>
     `;
   }).join("");
@@ -633,9 +626,7 @@ function renderTimeBreakdown(calls) {
         <tr>
           <th>Window</th>
           <th>Calls</th>
-          <th>Top agent</th>
           <th>Agents and shops called</th>
-          <th>Top agent/shop</th>
         </tr>
       </thead>
       <tbody>${rows}</tbody>
