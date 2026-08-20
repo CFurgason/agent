@@ -583,10 +583,20 @@ function renderAgentShopMatrix(calls) {
   const rows = agents.map((agent) => {
     const rowTotal = calls.filter((call) => call.agent === agent).length;
     const cells = shops.map((shop) => {
-      const count = calls.filter((call) => call.agent === agent && call.shop === shop).length;
+      const cellCalls = calls.filter((call) => call.agent === agent && call.shop === shop);
+      const count = cellCalls.length;
       const intensity = count ? 0.18 + (count / max) * 0.72 : 0;
       return `
-        <td class="heat-cell" style="--heat: ${intensity}">
+        <td
+          class="heat-cell${count ? " task-tooltip-target" : ""}"
+          style="--heat: ${intensity}"
+          ${count ? `
+            data-shop="${escapeHtml(shop)}"
+            data-agent="${escapeHtml(agent)}"
+            data-call-count="${count.toLocaleString()}"
+            data-task-breakdown="${taskBreakdown(cellCalls)}"
+          ` : ""}
+        >
           <span>${count ? count.toLocaleString() : ""}</span>
         </td>
       `;
@@ -1343,14 +1353,14 @@ els.endDateFilter?.addEventListener("change", () => {
   });
 });
 document.addEventListener("pointerover", (event) => {
-  const chip = event.target.closest(".shop-chip");
-  if (chip) showShopTaskTooltip(chip, event);
+  const target = event.target.closest(".shop-chip, .task-tooltip-target");
+  if (target) showShopTaskTooltip(target, event);
 });
 document.addEventListener("pointermove", (event) => {
-  if (event.target.closest(".shop-chip")) moveTaskHourTooltip(event);
+  if (event.target.closest(".shop-chip, .task-tooltip-target")) moveTaskHourTooltip(event);
 });
 document.addEventListener("pointerout", (event) => {
-  if (event.target.closest(".shop-chip")) hideTaskHourTooltip();
+  if (event.target.closest(".shop-chip, .task-tooltip-target")) hideTaskHourTooltip();
 });
 
 loadSheet().catch((error) => {
