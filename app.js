@@ -656,37 +656,61 @@ function renderAgentFlow(calls) {
 
 function renderTimeBreakdown(calls) {
   if (!els.timeBreakdown) return;
-  const buckets = bucketCalls(calls, state.breakdown);
-  const title = state.breakdown === "weekly" ? "Weekly activity" : state.breakdown === "daily" ? "Daily activity" : "Hourly activity";
-  if (els.timeBreakdownTitle) els.timeBreakdownTitle.textContent = title;
+  const buckets = bucketCalls(calls, "hourly");
+  const agents = topEntries(countBy(calls, "agent"), 50).map(([agent]) => agent);
+  if (els.timeBreakdownTitle) els.timeBreakdownTitle.textContent = "Hourly activity";
 
-  if (!buckets.length) {
+  if (!agents.length || !buckets.length) {
     els.timeBreakdown.innerHTML = `<p class="empty">No calls in this range.</p>`;
     return;
   }
 
-  const rows = buckets.map((bucket) => {
+  const rows = agents.map((agent) => {
+    const agentCalls = calls.filter((call) => call.agent === agent);
+    const cells = buckets.map((bucket) => {
+      const key = bucket.start.toISOString();
+      const bucketCallsForAgent = agentCalls.filter((call) => bucketKey(call.calledAt, "hourly") === key);
+      if (!bucketCallsForAgent.length) return `<td class="activity-cell empty-activity-cell"></td>`;
+
+      const shops = topEntries(countBy(bucketCallsForAgent, "shop"), 8);
+      return `
+        <td class="activity-cell">
+          <div class="activity-call-count">${bucketCallsForAgent.length.toLocaleString()}</div>
+          <div class="coverage-shops">
+            ${shops.map(([shop, count]) => {
+              const shopCalls = bucketCallsForAgent.filter((call) => call.shop === shop);
+              return `
+                <span
+                  class="shop-chip"
+                  data-shop="${escapeHtml(shop)}"
+                  data-agent="${escapeHtml(agent)}"
+                  data-call-count="${count.toLocaleString()}"
+                  data-task-breakdown="${taskBreakdown(shopCalls)}"
+                >${escapeHtml(shop)} <b>${count.toLocaleString()}</b></span>
+              `;
+            }).join("")}
+          </div>
+        </td>
+      `;
+    }).join("");
+
     return `
       <tr>
-        <th scope="row">${bucketLabel(bucket.start, state.breakdown)}</th>
-        <td>${bucket.calls.length.toLocaleString()}</td>
-        <td class="coverage-cell">${renderAgentShopCoverage(bucket.calls)}</td>
+        <th class="activity-agent-header" scope="row">
+          <strong title="${escapeHtml(agent)}">${escapeHtml(agent)}</strong>
+          <span>${agentCalls.length.toLocaleString()} calls</span>
+        </th>
+        ${cells}
       </tr>
     `;
   }).join("");
 
   els.timeBreakdown.innerHTML = `
     <table class="activity-table">
-      <colgroup>
-        <col class="window-col" />
-        <col class="calls-col" />
-        <col class="coverage-col" />
-      </colgroup>
       <thead>
         <tr>
-          <th>Window</th>
-          <th>Calls</th>
-          <th>Agents and shops called</th>
+          <th class="activity-agent-col">Agent</th>
+          ${buckets.map((bucket) => `<th class="activity-hour-col">${bucketLabel(bucket.start, "hourly")}</th>`).join("")}
         </tr>
       </thead>
       <tbody>${rows}</tbody>

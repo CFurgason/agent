@@ -894,22 +894,10 @@ select[multiple] option {
 }
 
 .activity-table {
-  width: 100%;
-  min-width: 0;
-  height: 100%;
-  table-layout: fixed;
-}
-
-.activity-table .window-col {
-  width: 95px;
-}
-
-.activity-table .calls-col {
-  width: 56px;
-}
-
-.activity-table .coverage-col {
-  width: auto;
+  width: max-content;
+  min-width: 100%;
+  height: auto;
+  table-layout: auto;
 }
 
 .activity-table th,
@@ -917,8 +905,76 @@ select[multiple] option {
   vertical-align: top;
 }
 
-.activity-table th:nth-child(3) {
-  min-width: 0;
+.activity-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.activity-agent-col,
+.activity-agent-header {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  width: 190px;
+  min-width: 190px;
+  max-width: 190px;
+  background: #211d18;
+  color: var(--cream);
+}
+
+.activity-agent-header {
+  display: grid;
+  gap: 5px;
+  align-content: start;
+}
+
+.activity-agent-header strong {
+  overflow: hidden;
+  font-size: 15px;
+  font-weight: 950;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.activity-agent-header span {
+  color: #d8ccba;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.activity-hour-col {
+  width: 220px;
+  min-width: 220px;
+  max-width: 220px;
+  white-space: normal;
+}
+
+.activity-cell {
+  width: 220px;
+  min-width: 220px;
+  max-width: 220px;
+}
+
+.empty-activity-cell {
+  background: rgba(229, 220, 205, 0.28);
+}
+
+.activity-call-count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 28px;
+  min-height: 24px;
+  margin-bottom: 7px;
+  padding: 0 7px;
+  border-radius: 5px;
+  background: var(--mint-dark);
+  color: var(--cream);
+  font-size: 14px;
+  font-weight: 950;
+  font-variant-numeric: tabular-nums;
 }
 
 .coverage-cell {
