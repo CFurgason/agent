@@ -77,6 +77,10 @@ const knownTaskValues = [
   "follow-up",
 ];
 
+const parseStats = {
+  skippedRows: [],
+};
+
 function normalizeHeader(value) {
   return String(value || "")
     .trim()
@@ -192,25 +196,140 @@ function findKnownTaskColumn(rows) {
 
 function inferColumns(rows) {
   const headers = Object.keys(rows[0] || {});
-  const columns = Object.fromEntries(
-    Object.entries(columnAliases).map(([key, aliases]) => [key, findColumn(headers, aliases)]),
-  );
+  const timestamp = findColumn(headers, columnAliases.timestamp);
+  const columns = {
+    agent: findColumn(headers, columnAliases.agent),
+    shop: findColumn(headers, columnAliases.shop),
+    task: findColumn(headers, columnAliases.task),
+    timestamp,
+    date: findColumn(headers.filter((header) => header !== timestamp), columnAliases.date),
+    time: findColumn(headers.filter((header) => header !== timestamp), columnAliases.time),
+  };
   columns.task = findTextColumn(rows, columnAliases.task) || findKnownTaskColumn(rows) || columns.task;
   return columns;
+}
+
+function parseSheetDate(value) {
+  const text = String(value || "").trim();
+  if (!text) return null;
+
+  const serial = Number(text);
+  if (Number.isFinite(serial) && serial > 1) {
+    const epoch = new Date(1899, 11, 30);
+    epoch.setDate(epoch.getDate() + Math.floor(serial));
+    return epoch;
+  }
+
+  const iso = text.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+  if (iso) return new Date(Number(iso[1]), Number(iso[2]) - 1, Number(iso[3]));
+
+  const us = text.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})/);
+  if (us) {
+    const year = Number(us[3].length === 2 ? `20${us[3]}` : us[3]);
+    return new Date(year, Number(us[1]) - 1, Number(us[2]));
+  }
+
+  const parsed = new Date(text);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+function parseSheetTime(value) {
+  const text = String(value || "").trim();
+  if (!text) return null;
+
+  const serial = Number(text);
+  if (Number.isFinite(serial) && serial >= 0 && serial < 1) {
+    const totalSeconds = Math.round(serial * 24 * 60 * 60);
+    return {
+      hours: Math.floor(totalSeconds / 3600),
+      minutes: Math.floor((totalSeconds % 3600) / 60),
+      seconds: totalSeconds % 60,
+    };
+  }
+
+  const match = text.match(/^(\d{1,2})(?::(\d{2}))?(?::(\d{2}))?\s*(AM|PM)?$/i);
+  if (!match) return null;
+
+  let hours = Number(match[1]);
+  const minutes = Number(match[2] || 0);
+  const seconds = Number(match[3] || 0);
+  const meridiem = match[4]?.toUpperCase();
+
+  if (meridiem === "PM" && hours < 12) hours += 12;
+  if (meridiem === "AM" && hours === 12) hours = 0;
+  if (hours > 23 || minutes > 59 || seconds > 59) return null;
+
+  return { hours, minutes, seconds };
+}
+
+function combineSheetDateTime(dateValue, timeValue) {
+  const date = parseSheetDate(dateValue);
+  const time = parseSheetTime(timeValue);
+  if (!date || !time) return null;
+
+  date.setHours(time.hours, time.minutes, time.seconds, 0);
+  return date;
+}
+
+function parseSheetTimestamp(value) {
+  const text = String(value || "").trim();
+  if (!text) return null;
+
+  const serial = Number(text);
+  if (Number.isFinite(serial) && serial > 1) {
+    const wholeDays = Math.floor(serial);
+    const totalSeconds = Math.round((serial - wholeDays) * 24 * 60 * 60);
+    const date = new Date(1899, 11, 30);
+    date.setDate(date.getDate() + wholeDays);
+    date.setSeconds(totalSeconds);
+    return date;
+  }
+
+  const datePart = parseSheetDate(text);
+  const timePartText = text.match(/(?:^|[\sT])(\d{1,2}(?::\d{2}){1,2}\s*(?:AM|PM)?|\d{1,2}\s*(?:AM|PM))\b/i)?.[1];
+  const timePart = parseSheetTime(timePartText);
+  if (datePart && timePart) {
+    datePart.setHours(timePart.hours, timePart.minutes, timePart.seconds, 0);
+    return datePart;
+  }
+
+  const parsed = new Date(text);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 
 function parseCallDate(row, columns) {
   const timestamp = columns.timestamp ? row[columns.timestamp] : "";
   const date = columns.date ? row[columns.date] : "";
   const time = columns.time ? row[columns.time] : "";
+  const explicitDateTime = combineSheetDateTime(date, time);
+  if (explicitDateTime) return explicitDateTime;
+
   const candidates = [timestamp, `${date} ${time}`.trim(), date].filter(Boolean);
 
   for (const candidate of candidates) {
-    const parsed = new Date(candidate);
-    if (!Number.isNaN(parsed.getTime())) return parsed;
+    const parsed = parseSheetTimestamp(candidate);
+    if (parsed) return parsed;
   }
 
   return null;
+}
+
+function logHourDiagnostics(calls) {
+  const hourCounts = calls.reduce((map, call) => {
+    const hour = call.calledAt.getHours();
+    map.set(hour, (map.get(hour) || 0) + 1);
+    return map;
+  }, new Map());
+  const summary = [...hourCounts.entries()]
+    .sort((a, b) => a[0] - b[0])
+    .map(([hour, count]) => `${formatHour(hour)}: ${count}`)
+    .join(", ");
+  console.info(`Parsed call hours: ${summary}`);
+}
+
+function logSkippedRowDiagnostics() {
+  if (!parseStats.skippedRows.length) return;
+  console.warn("Rows skipped because no valid call date/time could be parsed:", parseStats.skippedRows);
 }
 
 function clean(value, fallback) {
@@ -219,10 +338,19 @@ function clean(value, fallback) {
 }
 
 function buildCalls(rows, columns) {
+  parseStats.skippedRows = [];
   return rows
-    .map((row) => {
+    .map((row, index) => {
       const calledAt = parseCallDate(row, columns);
-      if (!calledAt) return null;
+      if (!calledAt) {
+        parseStats.skippedRows.push({
+          row: index + 2,
+          timestamp: columns.timestamp ? row[columns.timestamp] : "",
+          date: columns.date ? row[columns.date] : "",
+          time: columns.time ? row[columns.time] : "",
+        });
+        return null;
+      }
       return {
         calledAt,
         agent: clean(columns.agent ? row[columns.agent] : "", "Unassigned"),
@@ -363,6 +491,10 @@ function countPairs(calls) {
 
 function topEntries(map, limit = 12) {
   return [...map.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, limit);
+}
+
+function allEntries(map) {
+  return [...map.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
 }
 
 function setStatus(message, isError = false) {
@@ -660,7 +792,7 @@ function renderTimeBreakdown(calls) {
     hour,
     label: `${formatHour(hour)} - ${formatHour(hour + 1)}`,
   }));
-  const agents = topEntries(countBy(calls, "agent"), 50).map(([agent]) => agent);
+  const agents = allEntries(countBy(calls, "agent")).map(([agent]) => agent);
   if (els.timeBreakdownTitle) els.timeBreakdownTitle.textContent = "Hourly activity";
 
   if (!agents.length || !buckets.length) {
@@ -674,7 +806,7 @@ function renderTimeBreakdown(calls) {
       const bucketCallsForAgent = agentCalls.filter((call) => call.calledAt.getHours() === bucket.hour);
       if (!bucketCallsForAgent.length) return `<td class="activity-cell empty-activity-cell"></td>`;
 
-      const shops = topEntries(countBy(bucketCallsForAgent, "shop"), 8);
+      const shops = allEntries(countBy(bucketCallsForAgent, "shop"));
       return `
         <td class="activity-cell">
           <div class="activity-call-count">${bucketCallsForAgent.length.toLocaleString()}</div>
@@ -1132,6 +1264,8 @@ async function loadSheet() {
   state.rows = rowsToObjects(parsed);
   state.columns = inferColumns(state.rows);
   state.calls = buildCalls(state.rows, state.columns);
+  logHourDiagnostics(state.calls);
+  logSkippedRowDiagnostics();
 
   const missing = ["agent", "shop", "task"].filter((key) => !state.columns[key]);
   if (!state.calls.length) {
@@ -1149,7 +1283,11 @@ async function loadSheet() {
     .map(([key, value]) => `${key}: ${value}`)
     .join("; ");
   const latestLoaded = state.calls[0].calledAt.toLocaleDateString();
-  setStatus(`${state.calls.length.toLocaleString()} calls loaded through ${latestLoaded}. Columns mapped: ${mapped}${missing.length ? `. Missing optional grouping columns: ${missing.join(", ")}.` : "."}`);
+  const skipped = parseStats.skippedRows.length;
+  const skippedText = skipped
+    ? ` ${skipped.toLocaleString()} sheet rows were skipped because their call date/time could not be parsed; details are in the browser console.`
+    : " No sheet rows were skipped for date/time parsing.";
+  setStatus(`${state.calls.length.toLocaleString()} calls loaded from ${state.rows.length.toLocaleString()} sheet rows through ${latestLoaded}. Columns mapped: ${mapped}.${skippedText}${missing.length ? ` Missing optional grouping columns: ${missing.join(", ")}.` : ""}`);
   render();
 }
 
