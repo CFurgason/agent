@@ -979,16 +979,12 @@ function renderDashboard() {
   if (els.rangeLabel) els.rangeLabel.textContent = rangeText;
   if (els.matrixLabel) els.matrixLabel.textContent = `${agents.size.toLocaleString()} agents x ${shops.size.toLocaleString()} shops`;
   if (els.pairLabel) els.pairLabel.textContent = rangeText;
-  if (els.agentFlowLabel) els.agentFlowLabel.textContent = rangeText;
-  if (els.timeBreakdownLabel) els.timeBreakdownLabel.textContent = rangeText;
   if (els.volumeLabel) els.volumeLabel.textContent = volumeFilterLabel(calls);
   if (els.shopLabel) els.shopLabel.textContent = periodLabel;
   if (els.taskLabel) els.taskLabel.textContent = periodLabel;
 
   renderAgentShopMatrix(calls);
-  renderAgentFlow(calls);
   renderAgentShopPairs(calls);
-  renderTimeBreakdown(calls);
   renderColumnChart(els.shopChart, topEntries(shops, 10));
   renderVolumeBreakdown(calls);
   renderColumnChart(els.taskChart, topEntries(tasks, 10));

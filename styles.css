@@ -111,7 +111,7 @@ main {
 
 .controls {
   display: grid;
-  grid-template-columns: minmax(170px, 0.8fr) minmax(230px, 0.95fr) minmax(230px, 0.95fr) minmax(300px, 1.2fr);
+  grid-template-columns: minmax(170px, 0.8fr) minmax(230px, 0.95fr) minmax(300px, 1.2fr);
   gap: 12px;
   align-items: end;
   margin-bottom: 14px;
@@ -441,8 +441,15 @@ select[multiple] option {
 .pair-panel {
   display: flex;
   flex-direction: column;
-  height: 1120px;
   min-height: 0;
+}
+
+.activity-panel {
+  height: 1120px;
+}
+
+.pair-panel {
+  grid-column: 1 / -1;
 }
 
 .activity-panel .table-wrap,
@@ -1096,19 +1103,20 @@ select[multiple] option {
 
 .cluster-tooltip strong {
   overflow-wrap: anywhere;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 900;
 }
 
 .cluster-tooltip span {
   color: #d8ccba;
+  font-size: 14px;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
 }
 
 .shop-task-tooltip {
-  min-width: 230px;
-  max-width: 320px;
+  min-width: 280px;
+  max-width: 380px;
 }
 
 .shop-task-tooltip ul {
@@ -1124,7 +1132,7 @@ select[multiple] option {
   justify-content: space-between;
   gap: 12px;
   color: var(--cream);
-  font-size: 12px;
+  font-size: 15px;
   font-weight: 800;
 }
 

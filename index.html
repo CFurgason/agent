@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Who Is Calling Which Shop | Call Agent Dashboard</title>
-    <link rel="stylesheet" href="styles.css?v=42" />
+    <link rel="stylesheet" href="styles.css?v=44" />
   </head>
   <body>
     <header class="topbar">
@@ -36,14 +36,6 @@
             <button class="period-button" type="button" data-period="day">Day</button>
             <button class="period-button active" type="button" data-period="week">Week</button>
             <button class="period-button" type="button" data-period="month">Month</button>
-          </div>
-        </fieldset>
-        <fieldset class="period-control">
-          <legend>Breakdown</legend>
-          <div class="segmented" role="group" aria-label="Time breakdown">
-            <button class="breakdown-button active" type="button" data-breakdown="hourly">Hourly</button>
-            <button class="breakdown-button" type="button" data-breakdown="daily">Daily</button>
-            <button class="breakdown-button" type="button" data-breakdown="weekly">Weekly</button>
           </div>
         </fieldset>
         <div class="date-range">
@@ -84,22 +76,6 @@
           <div id="agentShopMatrix" class="matrix-wrap"></div>
         </div>
 
-        <div class="panel panel-wide flow-panel">
-          <div class="section-title">
-            <h2 id="agentFlowTitle">Agent call flow</h2>
-            <span id="agentFlowLabel"></span>
-          </div>
-          <div id="agentFlow" class="agent-flow"></div>
-        </div>
-
-        <div class="panel activity-panel">
-          <div class="section-title">
-            <h2 id="timeBreakdownTitle">Hourly activity</h2>
-            <span id="timeBreakdownLabel"></span>
-          </div>
-          <div id="timeBreakdown" class="table-wrap"></div>
-        </div>
-
         <div class="panel pair-panel">
           <div class="section-title">
             <h2>Busiest caller/shop pairs</h2>
@@ -111,6 +87,6 @@
       </section>
     </main>
 
-    <script src="app.js?v=42"></script>
+    <script src="app.js?v=44"></script>
   </body>
 </html>
