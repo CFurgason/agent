@@ -656,7 +656,10 @@ function renderAgentFlow(calls) {
 
 function renderTimeBreakdown(calls) {
   if (!els.timeBreakdown) return;
-  const buckets = bucketCalls(calls, "hourly");
+  const buckets = hourRange(calls).map((hour) => ({
+    hour,
+    label: `${formatHour(hour)} - ${formatHour(hour + 1)}`,
+  }));
   const agents = topEntries(countBy(calls, "agent"), 50).map(([agent]) => agent);
   if (els.timeBreakdownTitle) els.timeBreakdownTitle.textContent = "Hourly activity";
 
@@ -668,8 +671,7 @@ function renderTimeBreakdown(calls) {
   const rows = agents.map((agent) => {
     const agentCalls = calls.filter((call) => call.agent === agent);
     const cells = buckets.map((bucket) => {
-      const key = bucket.start.toISOString();
-      const bucketCallsForAgent = agentCalls.filter((call) => bucketKey(call.calledAt, "hourly") === key);
+      const bucketCallsForAgent = agentCalls.filter((call) => call.calledAt.getHours() === bucket.hour);
       if (!bucketCallsForAgent.length) return `<td class="activity-cell empty-activity-cell"></td>`;
 
       const shops = topEntries(countBy(bucketCallsForAgent, "shop"), 8);
@@ -710,7 +712,7 @@ function renderTimeBreakdown(calls) {
       <thead>
         <tr>
           <th class="activity-agent-col">Agent</th>
-          ${buckets.map((bucket) => `<th class="activity-hour-col">${bucketLabel(bucket.start, "hourly")}</th>`).join("")}
+          ${buckets.map((bucket) => `<th class="activity-hour-col">${bucket.label}</th>`).join("")}
         </tr>
       </thead>
       <tbody>${rows}</tbody>
