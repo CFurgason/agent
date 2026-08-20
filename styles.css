@@ -29,7 +29,7 @@ body {
     var(--bg);
   background-size: 34px 34px;
   color: var(--cream);
-  font-size: 16px;
+  font-size: 18px;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
@@ -65,7 +65,7 @@ body {
   padding: 0 11px;
   border-radius: 6px;
   color: #c9bdac;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 800;
   text-decoration: none;
   white-space: nowrap;
@@ -79,7 +79,7 @@ body {
 .eyebrow {
   margin: 0 0 8px;
   color: var(--mint);
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 900;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -94,14 +94,14 @@ h2 {
 h1 {
   max-width: 900px;
   color: var(--cream);
-  font-size: clamp(34px, 5vw, 66px);
+  font-size: clamp(38px, 5vw, 72px);
   line-height: 0.96;
   font-weight: 900;
 }
 
 h2 {
   color: var(--ink);
-  font-size: 21px;
+  font-size: 24px;
   font-weight: 900;
 }
 
@@ -131,7 +131,7 @@ label,
   display: grid;
   gap: 7px;
   color: #d8ccba;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 900;
   text-transform: uppercase;
 }
@@ -203,7 +203,7 @@ select[multiple] option {
   background: #211d18;
   color: var(--cream);
   font: inherit;
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 850;
   text-align: left;
   text-overflow: ellipsis;
@@ -216,7 +216,7 @@ select[multiple] option {
   right: 12px;
   content: "v";
   color: #d8ccba;
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .agent-filter-menu {
@@ -249,7 +249,7 @@ select[multiple] option {
   padding: 7px 8px;
   border-radius: 5px;
   color: var(--cream);
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 800;
   text-transform: none;
 }
@@ -286,7 +286,7 @@ select[multiple] option {
   gap: 8px;
   min-height: 32px;
   color: var(--ink);
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 800;
   text-transform: none;
 }
@@ -340,7 +340,7 @@ select[multiple] option {
 .icon-button {
   width: 44px;
   color: var(--amber);
-  font-size: 22px;
+  font-size: 24px;
   cursor: pointer;
 }
 
@@ -348,7 +348,7 @@ select[multiple] option {
   min-height: 22px;
   margin: 10px 0 16px;
   color: #d8ccba;
-  font-size: 15px;
+  font-size: 17px;
 }
 
 .status.error {
@@ -389,7 +389,7 @@ select[multiple] option {
 .metric-grid span,
 .section-title span {
   color: var(--muted);
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 900;
   text-transform: uppercase;
 }
@@ -399,7 +399,7 @@ select[multiple] option {
   margin-top: 8px;
   overflow: hidden;
   color: var(--ink);
-  font-size: clamp(24px, 3vw, 34px);
+  font-size: clamp(28px, 3vw, 38px);
   font-weight: 950;
   line-height: 1;
   text-overflow: ellipsis;
@@ -502,7 +502,7 @@ select[multiple] option {
 
 .flow-header span {
   color: var(--muted);
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 950;
   text-transform: uppercase;
   white-space: nowrap;
@@ -542,20 +542,20 @@ select[multiple] option {
 
 .flow-agent strong {
   color: var(--ink);
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 950;
 }
 
 .flow-agent span {
   color: var(--mint-dark);
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 950;
   text-transform: uppercase;
 }
 
 .flow-agent small {
   color: var(--muted);
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 850;
 }
 
@@ -591,7 +591,7 @@ select[multiple] option {
   border-radius: 5px;
   background: var(--mint-dark);
   color: var(--cream);
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 950;
   font-variant-numeric: tabular-nums;
 }
@@ -610,7 +610,7 @@ select[multiple] option {
   border-radius: 5px;
   background: #fffaf0;
   color: var(--ink);
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 850;
   line-height: 1.2;
   overflow-wrap: anywhere;
@@ -659,18 +659,18 @@ select[multiple] option {
 }
 
 .pair-copy strong {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 950;
 }
 
 .pair-copy span {
   color: var(--muted);
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 800;
 }
 
 .pair-count {
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 950;
   font-variant-numeric: tabular-nums;
 }
@@ -700,7 +700,7 @@ select[multiple] option {
 
 .volume-time {
   color: var(--muted);
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 800;
 }
 
@@ -785,7 +785,7 @@ select[multiple] option {
 
 .column-value {
   color: var(--ink);
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 900;
   text-align: center;
   font-variant-numeric: tabular-nums;
@@ -813,7 +813,7 @@ select[multiple] option {
   display: -webkit-box;
   overflow: hidden;
   color: var(--muted);
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 850;
   line-height: 1.15;
   text-align: center;
@@ -852,7 +852,7 @@ select[multiple] option {
 
 .heat-table tbody th {
   color: var(--ink);
-  font-size: 15px;
+  font-size: 17px;
   text-transform: none;
 }
 
@@ -860,7 +860,7 @@ select[multiple] option {
   display: block;
   margin-top: 3px;
   color: var(--muted);
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 900;
   text-transform: uppercase;
 }
@@ -873,7 +873,7 @@ select[multiple] option {
 }
 
 .heat-cell span {
-  font-size: 17px;
+  font-size: 19px;
   font-weight: 950;
   font-variant-numeric: tabular-nums;
 }
@@ -888,7 +888,7 @@ select[multiple] option {
   border-radius: 5px;
   background: #272019;
   color: var(--cream);
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 900;
   font-variant-numeric: tabular-nums;
 }
@@ -931,7 +931,7 @@ select[multiple] option {
 
 .activity-agent-header strong {
   overflow: hidden;
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 950;
   line-height: 1.15;
   text-overflow: ellipsis;
@@ -940,7 +940,7 @@ select[multiple] option {
 
 .activity-agent-header span {
   color: #d8ccba;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 900;
   text-transform: uppercase;
 }
@@ -972,7 +972,7 @@ select[multiple] option {
   border-radius: 5px;
   background: var(--mint-dark);
   color: var(--cream);
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 950;
   font-variant-numeric: tabular-nums;
 }
@@ -1009,7 +1009,7 @@ select[multiple] option {
   border-radius: 5px;
   background: #211d18;
   color: var(--cream);
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 950;
   line-height: 1.15;
 }
@@ -1036,7 +1036,7 @@ select[multiple] option {
   border-radius: 5px;
   background: #ffffff;
   color: var(--ink);
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 900;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1051,7 +1051,7 @@ select[multiple] option {
   border-radius: 4px;
   background: var(--mint-dark);
   color: var(--cream);
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 950;
   font-variant-numeric: tabular-nums;
 }
@@ -1076,7 +1076,7 @@ select[multiple] option {
   gap: 6px;
   max-width: 220px;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .cluster-legend-item span {
@@ -1110,7 +1110,7 @@ select[multiple] option {
 .cluster-total,
 .cluster-hour {
   color: var(--ink);
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 850;
   font-variant-numeric: tabular-nums;
 }
@@ -1158,7 +1158,7 @@ select[multiple] option {
   background: rgba(20, 18, 15, 0.96);
   color: var(--cream);
   box-shadow: 0 14px 34px rgba(0, 0, 0, 0.35);
-  font-size: 13px;
+  font-size: 15px;
   line-height: 1.2;
   opacity: 0;
   pointer-events: none;
@@ -1173,13 +1173,13 @@ select[multiple] option {
 
 .cluster-tooltip strong {
   overflow-wrap: anywhere;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 900;
 }
 
 .cluster-tooltip span {
   color: #d8ccba;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
 }
@@ -1202,14 +1202,14 @@ select[multiple] option {
   justify-content: space-between;
   gap: 12px;
   color: var(--cream);
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 800;
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 16px;
+  font-size: 18px;
 }
 
 th,
@@ -1226,7 +1226,7 @@ th {
   z-index: 1;
   background: var(--panel-2);
   color: var(--muted);
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 950;
   text-transform: uppercase;
 }
@@ -1239,7 +1239,7 @@ td {
   margin: 0;
   padding: 16px;
   color: var(--muted);
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 800;
 }
 
@@ -1287,7 +1287,7 @@ td {
   }
 
   .metric-grid strong {
-    font-size: 26px;
+    font-size: 30px;
   }
 
   th,
