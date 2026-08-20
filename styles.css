@@ -46,34 +46,45 @@ body {
 .top-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
 }
 
 .page-nav {
   display: flex;
-  gap: 4px;
-  padding: 4px;
-  border: 1px solid rgba(255, 250, 240, 0.14);
-  border-radius: 8px;
-  background: #24211d;
+  gap: 8px;
+  padding: 6px;
+  border: 2px solid rgba(255, 250, 240, 0.2);
+  border-radius: 10px;
+  background: #171410;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.28);
 }
 
 .page-nav a {
   display: inline-flex;
   align-items: center;
-  min-height: 34px;
-  padding: 0 11px;
-  border-radius: 6px;
-  color: #c9bdac;
-  font-size: 15px;
-  font-weight: 800;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0 22px;
+  border: 1px solid rgba(255, 250, 240, 0.16);
+  border-radius: 8px;
+  background: #2f2a23;
+  color: var(--cream);
+  font-size: 18px;
+  font-weight: 950;
   text-decoration: none;
   white-space: nowrap;
+}
+
+.page-nav a:hover {
+  border-color: rgba(231, 167, 57, 0.72);
+  background: #3a3329;
 }
 
 .page-nav a.active {
   background: var(--amber);
   color: #1c160c;
+  border-color: var(--amber);
+  box-shadow: 0 0 0 3px rgba(231, 167, 57, 0.24);
 }
 
 .eyebrow {
@@ -876,6 +887,10 @@ select[multiple] option {
   font-size: 19px;
   font-weight: 950;
   font-variant-numeric: tabular-nums;
+}
+
+.task-tooltip-target {
+  cursor: help;
 }
 
 .activity-table td span {

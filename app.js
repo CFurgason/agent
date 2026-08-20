@@ -568,8 +568,8 @@ function filteredCalls() {
 
 function renderAgentShopMatrix(calls) {
   if (!els.agentShopMatrix) return;
-  const agents = topEntries(countBy(calls, "agent"), 12).map(([agent]) => agent);
-  const shops = topEntries(countBy(calls, "shop"), 10).map(([shop]) => shop);
+  const agents = allEntries(countBy(calls, "agent")).map(([agent]) => agent);
+  const shops = allEntries(countBy(calls, "shop")).map(([shop]) => shop);
 
   if (!agents.length || !shops.length) {
     els.agentShopMatrix.innerHTML = `<p class="empty">No calls in this range.</p>`;
