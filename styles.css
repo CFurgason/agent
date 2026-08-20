@@ -416,6 +416,10 @@ select[multiple] option {
   grid-template-columns: 1fr;
 }
 
+.activity-page-layout {
+  grid-template-columns: 1fr;
+}
+
 .panel {
   min-width: 0;
   padding: 18px;
@@ -446,6 +450,12 @@ select[multiple] option {
 
 .activity-panel {
   height: 1120px;
+}
+
+.activity-page-panel {
+  grid-column: 1 / -1;
+  height: calc(100vh - 260px);
+  min-height: 520px;
 }
 
 .pair-panel {
@@ -822,6 +832,10 @@ select[multiple] option {
 
 .table-wrap {
   max-height: 640px;
+}
+
+.activity-page-panel .table-wrap {
+  max-height: none;
 }
 
 .matrix-wrap table {

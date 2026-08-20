@@ -3,19 +3,19 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Who Is Calling Which Shop | Call Agent Dashboard</title>
+    <title>Hourly Activity | Call Agent Dashboard</title>
     <link rel="stylesheet" href="styles.css?v=45" />
   </head>
-  <body>
+  <body class="activity-page">
     <header class="topbar">
       <div>
         <p class="eyebrow">Call Agent Dashboard</p>
-        <h1>Who is making calls at which shop?</h1>
+        <h1>Hourly activity</h1>
       </div>
       <div class="top-actions">
         <nav class="page-nav" aria-label="Dashboard pages">
-          <a class="active" href="index.html">Overview</a>
-          <a href="hourly.html">Hourly table</a>
+          <a href="index.html">Overview</a>
+          <a class="active" href="hourly.html">Hourly table</a>
         </nav>
         <button id="refreshButton" class="icon-button" type="button" aria-label="Refresh sheet data" title="Refresh sheet data">
           <span aria-hidden="true">&#8635;</span>
@@ -24,7 +24,7 @@
     </header>
 
     <main>
-      <section class="controls" aria-label="Dashboard filters">
+      <section class="controls" aria-label="Hourly activity filters">
         <label class="agent-picker-label">
           Agents
           <div class="agent-picker" id="agentFilter">
@@ -56,38 +56,14 @@
 
       <section id="statusPanel" class="status" role="status"></section>
 
-      <section class="metric-grid" aria-label="Summary metrics">
-        <article>
-          <span>Total calls</span>
-          <strong id="totalCalls">0</strong>
-        </article>
-        <article>
-          <span>Active agents</span>
-          <strong id="agentCount">0</strong>
-        </article>
-        <article>
-          <span>Active shops</span>
-          <strong id="shopCount">0</strong>
-        </article>
-      </section>
-
-      <section class="layout">
-        <div class="panel panel-wide focus-panel">
+      <section class="layout activity-page-layout">
+        <div class="panel activity-panel activity-page-panel">
           <div class="section-title">
-            <h2>Agent by shop call map</h2>
-            <span id="matrixLabel"></span>
+            <h2 id="timeBreakdownTitle">Hourly activity</h2>
+            <span id="timeBreakdownLabel"></span>
           </div>
-          <div id="agentShopMatrix" class="matrix-wrap"></div>
+          <div id="timeBreakdown" class="table-wrap"></div>
         </div>
-
-        <div class="panel pair-panel">
-          <div class="section-title">
-            <h2>Busiest caller/shop pairs</h2>
-            <span id="pairLabel"></span>
-          </div>
-          <div id="agentShopPairs" class="pair-list"></div>
-        </div>
-
       </section>
     </main>
 
