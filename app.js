@@ -1,11 +1,19 @@
 const SHEET_ID = "19NMJyjtPNBEqm_STpbVeO69UbymsL7F78h5uX_7xeE8";
 const SHEET_GID = "0";
 const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${SHEET_GID}`;
+const EXTERNAL_SHEET_ID = "14-Yrn0eXK4a_bl4FFd1rzJIFhwJG7vYSJHwG_srHK-s";
+const EXTERNAL_SHEET_GID = "0";
+const EXTERNAL_SHEET_URL = `https://docs.google.com/spreadsheets/d/${EXTERNAL_SHEET_ID}/gviz/tq?tqx=out:csv&gid=${EXTERNAL_SHEET_GID}`;
 
 const state = {
   rows: [],
   calls: [],
   columns: {},
+  externalSheetRows: [],
+  externalSheetHeaders: [],
+  externalSheetColumns: {},
+  externalSheetCalls: [],
+  externalSheetError: "",
   period: "week",
   breakdown: "hourly",
   compareAgents: [],
@@ -30,6 +38,7 @@ const els = {
   rangeLabel: document.querySelector("#rangeLabel"),
   matrixLabel: document.querySelector("#matrixLabel"),
   pairLabel: document.querySelector("#pairLabel"),
+  externalSheetLabel: document.querySelector("#externalSheetLabel"),
   agentFlowTitle: document.querySelector("#agentFlowTitle"),
   agentFlowLabel: document.querySelector("#agentFlowLabel"),
   timeBreakdownTitle: document.querySelector("#timeBreakdownTitle"),
@@ -46,6 +55,7 @@ const els = {
   shopHourChart: document.querySelector("#shopHourChart"),
   agentShopMatrix: document.querySelector("#agentShopMatrix"),
   agentShopPairs: document.querySelector("#agentShopPairs"),
+  externalSheetTable: document.querySelector("#externalSheetTable"),
   agentFlow: document.querySelector("#agentFlow"),
   timeBreakdown: document.querySelector("#timeBreakdown"),
   compareAgentChoices: document.querySelector("#compareAgentChoices"),
@@ -128,6 +138,16 @@ function rowsToObjects(rows) {
   return rows.slice(1).map((row) =>
     Object.fromEntries(headers.map((header, index) => [header.trim(), (row[index] || "").trim()])),
   );
+}
+
+function makeUniqueHeaders(headers) {
+  const counts = new Map();
+  return headers.map((header, index) => {
+    const base = header.trim() || `Column ${index + 1}`;
+    const count = counts.get(base) || 0;
+    counts.set(base, count + 1);
+    return count ? `${base} ${count + 1}` : base;
+  });
 }
 
 function textValueScore(rows, header) {
@@ -645,6 +665,83 @@ function renderAgentShopPairs(calls) {
       </div>
     `;
   }).join("");
+}
+
+function renderAgentShopMatrixInto(element, calls, emptyMessage) {
+  if (!element) return;
+  const agents = allEntries(countBy(calls, "agent")).map(([agent]) => agent);
+  const shops = allEntries(countBy(calls, "shop")).map(([shop]) => shop);
+
+  if (!agents.length || !shops.length) {
+    element.innerHTML = `<p class="empty">${escapeHtml(emptyMessage)}</p>`;
+    return;
+  }
+
+  const max = Math.max(1, ...agents.flatMap((agent) =>
+    shops.map((shop) => calls.filter((call) => call.agent === agent && call.shop === shop).length),
+  ));
+
+  const rows = agents.map((agent) => {
+    const rowTotal = calls.filter((call) => call.agent === agent).length;
+    const cells = shops.map((shop) => {
+      const cellCalls = calls.filter((call) => call.agent === agent && call.shop === shop);
+      const count = cellCalls.length;
+      const intensity = count ? 0.18 + (count / max) * 0.72 : 0;
+      return `
+        <td
+          class="heat-cell${count ? " task-tooltip-target" : ""}"
+          style="--heat: ${intensity}"
+          ${count ? `
+            data-shop="${escapeHtml(shop)}"
+            data-agent="${escapeHtml(agent)}"
+            data-call-count="${count.toLocaleString()}"
+            data-task-breakdown="${taskBreakdown(cellCalls)}"
+          ` : ""}
+        >
+          <span>${count ? count.toLocaleString() : ""}</span>
+        </td>
+      `;
+    }).join("");
+    return `
+      <tr>
+        <th scope="row">${escapeHtml(agent)}<span>${rowTotal.toLocaleString()} calls</span></th>
+        ${cells}
+      </tr>
+    `;
+  }).join("");
+
+  element.innerHTML = `
+    <table class="heat-table">
+      <thead>
+        <tr>
+          <th>Agent</th>
+          ${shops.map((shop) => `<th title="${escapeHtml(shop)}">${escapeHtml(shop)}</th>`).join("")}
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
+}
+
+function renderExternalSheetTable() {
+  if (!els.externalSheetTable) return;
+
+  if (state.externalSheetError) {
+    els.externalSheetTable.innerHTML = `<p class="empty">${escapeHtml(state.externalSheetError)}</p>`;
+    if (els.externalSheetLabel) els.externalSheetLabel.textContent = "Not loaded";
+    return;
+  }
+
+  const selected = selectedAgentSet();
+  const calls = callsInCurrentRange(state.externalSheetCalls)
+    .filter((call) => !selected || selected.has(call.agent));
+  const agents = countBy(calls, "agent");
+  const shops = countBy(calls, "shop");
+  if (els.externalSheetLabel) {
+    els.externalSheetLabel.textContent = `${agents.size.toLocaleString()} agents x ${shops.size.toLocaleString()} shops`;
+  }
+
+  renderAgentShopMatrixInto(els.externalSheetTable, calls, "No calls from the new sheet in this range.");
 }
 
 function startOfDay(date) {
@@ -1262,7 +1359,34 @@ function renderComparison() {
 function render() {
   removeLegacyCallLog();
   renderDashboard();
+  renderExternalSheetTable();
   renderComparison();
+}
+
+async function loadExternalSheet() {
+  if (!els.externalSheetTable) return;
+
+  state.externalSheetError = "";
+  if (els.externalSheetLabel) els.externalSheetLabel.textContent = "Loading...";
+  els.externalSheetTable.innerHTML = `<p class="empty">Loading sheet...</p>`;
+
+  const response = await fetch(`${EXTERNAL_SHEET_URL}&cacheBust=${Date.now()}`);
+  if (!response.ok) throw new Error(`Google Sheet returned ${response.status}`);
+
+  const csv = await response.text();
+  const parsed = parseCsv(csv);
+  const headers = makeUniqueHeaders(parsed[0] || []);
+
+  state.externalSheetHeaders = headers;
+  state.externalSheetRows = parsed.slice(1)
+    .filter((row) => row.some((cell) => String(cell || "").trim() !== ""))
+    .map((row) => Object.fromEntries(headers.map((header, index) => [header, (row[index] || "").trim()])));
+  state.externalSheetColumns = inferColumns(state.externalSheetRows);
+  state.externalSheetCalls = buildCalls(state.externalSheetRows, state.externalSheetColumns);
+
+  if (!state.externalSheetCalls.length) {
+    throw new Error("No dated call rows were found in the new sheet.");
+  }
 }
 
 async function loadSheet() {
@@ -1298,6 +1422,17 @@ async function loadSheet() {
     ? ` ${skipped.toLocaleString()} sheet rows were skipped because their call date/time could not be parsed; details are in the browser console.`
     : " No sheet rows were skipped for date/time parsing.";
   setStatus(`${state.calls.length.toLocaleString()} calls loaded from ${state.rows.length.toLocaleString()} sheet rows through ${latestLoaded}. Columns mapped: ${mapped}.${skippedText}${missing.length ? ` Missing optional grouping columns: ${missing.join(", ")}.` : ""}`);
+
+  try {
+    await loadExternalSheet();
+  } catch (error) {
+    state.externalSheetRows = [];
+    state.externalSheetHeaders = [];
+    state.externalSheetColumns = {};
+    state.externalSheetCalls = [];
+    state.externalSheetError = `${error.message} If the sheet is private, publish it or share it so viewers can read it.`;
+  }
+
   render();
 }
 

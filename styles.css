@@ -473,6 +473,10 @@ select[multiple] option {
   grid-column: 1 / -1;
 }
 
+.sheet-panel {
+  border-top: 7px solid var(--mint);
+}
+
 .activity-panel .table-wrap,
 .pair-panel .pair-list {
   flex: 1 1 auto;
@@ -851,6 +855,10 @@ select[multiple] option {
 
 .matrix-wrap table {
   min-width: 760px;
+}
+
+.external-sheet-wrap {
+  max-height: 680px;
 }
 
 .heat-table {
